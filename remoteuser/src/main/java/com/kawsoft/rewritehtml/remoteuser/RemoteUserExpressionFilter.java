@@ -17,6 +17,7 @@
 package com.kawsoft.rewritehtml.remoteuser;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Logger;
@@ -29,20 +30,20 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpSession;
 
 import org.mvel2.MVEL;
 
 public class RemoteUserExpressionFilter implements Filter {
     private static final Logger log = Logger.getLogger(RemoteUserExpressionFilter.class.getName());
     
-    private String remoteUserExpression;
+    private Serializable remoteUserExpression;
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         String remoteUserExpression = filterConfig.getInitParameter("remote-user-expression");
         if (remoteUserExpression != null) {
-            this.remoteUserExpression = remoteUserExpression;
+            // compile the MVEL expression
+            this.remoteUserExpression = MVEL.compileExpression(remoteUserExpression);
             log.info("Using remote user expression: " + remoteUserExpression);
         } else {
             throw new ServletException("The session-expression variable is requried for RemoteUserExpressionFilter"); 
@@ -65,14 +66,10 @@ public class RemoteUserExpressionFilter implements Filter {
                 if (remoteUserExpression != null) {
                     
                     // Use MVEL to evaluate expression.
-                    // TODO: compile the MVEL expression.
                     Map<String,Object> vars = new HashMap<String,Object>();
                     vars.put("request", request);
-                    HttpSession session = ((HttpServletRequest)request).getSession(false);
-                    if (session != null) {
-                        vars.put("session", session);
-                    }
-                    Object result = MVEL.eval(remoteUserExpression, vars);
+                    vars.put("session", ((HttpServletRequest)request).getSession(false));
+                    Object result = MVEL.executeExpression(remoteUserExpression, vars);
                     return result == null ? null : result.toString();
                 } else {
                     return super.getRemoteUser();
