@@ -1,0 +1,2 @@
+rewritehtml
+Copyright 2011 Kurt Westerfeld

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<config>
+  <contentFilters>
+    <contentFilter mimeTypeMatch="text/html" uriMatch=".*">
+      <replacements>
+        <replacement from='href="/image/' to='href="/rportal/image/' />
+        <replacement from='src="/image/' to='src="/rportal/image/' />
+        <replacement from='url("/image/' to='url("/rportal/image/' />
+        
+        <replacement from='href="/html/' to='href="/rportal/html/' />
+        <replacement from='src="/html/' to='src="/rportal/html/' />
+        <replacement from='url("/html/' to='url("/rportal/html/' />
+        
+        <replacement from="http://localhost:8080/" to="/" />
+        
+      </replacements>
+    </contentFilter>
+  </contentFilters>
+
+  <responseHeaderFilters>
+    <responseHeaderFilter header="Location">
+      <replacements>
+        <replacement from="http://localhost:8080/" to="/" />
+      </replacements>
+    </responseHeaderFilter>
+  </responseHeaderFilters>
+</config>
