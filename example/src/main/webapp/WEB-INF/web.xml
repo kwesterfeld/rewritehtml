@@ -5,16 +5,27 @@
 <web-app>
   <display-name>Rewrite HTML Example</display-name>
 
-  <!-- NOTE: this filter and it's associated mapping should *NOT* be mapped for an actual application.
-             The MockRemoteUserFilter simply hard-codes a remote user name in the filter chain so that
-             testing the ProxyServlet with remote-user-header facility is easier.
+  <!-- NOTE: this filter and it's associated mapping should *NOT* be mapped to 
+             a constant as this is used for an actual application.
+             
+             The RemoteUserExpressionFilter supplies a remote user name in the filter chain 
+             so that testing the ProxyServlet with remote-user-header facility is easier,
+             and can evaluate session variables and other data.
+             
+             Another example: session.USERNAME
+             
+             would lookup "USERNAME" within the http session.
+             
+             Two context values are provided, "request" and "session" (if created),
+             and expression is evaluated via MVEL (see here: http://mvel.codehaus.org) 
+             
    -->
   <filter>
-     <filter-name>MockRemoteUserFilter</filter-name>
-     <filter-class>com.kawsoft.rewritehtml.example.MockRemoteUserFilter</filter-class>
+     <filter-name>RemoteUserExpressionFilter</filter-name>
+     <filter-class>com.kawsoft.rewritehtml.remoteuser.RemoteUserExpressionFilter</filter-class>
      <init-param>
-         <param-name>user-name</param-name>
-         <param-value>bruno</param-value>
+         <param-name>remote-user-expression</param-name>
+         <param-value>&quot;bruno&quot;</param-value>
      </init-param>
   </filter>
 
@@ -35,7 +46,7 @@
   </filter>
   
   <filter-mapping>
-     <filter-name>MockRemoteUserFilter</filter-name>
+     <filter-name>RemoteUserExpressionFilter</filter-name>
      <url-pattern>/*</url-pattern>
   </filter-mapping>
   <filter-mapping>
