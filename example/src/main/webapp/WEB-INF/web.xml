@@ -9,15 +9,21 @@
              a constant as this is used for an actual application.
              
              The RemoteUserExpressionFilter supplies a remote user name in the filter chain 
-             so that testing the ProxyServlet with remote-user-header facility is easier,
-             and can evaluate session variables and other data.
+             so that using the ProxyServlet with remote-user-header facility is easier,
+             and can evaluate session variables and other data if required.  It's useful
+             for testing, and can also be used to tie session data that is private to the 
+             application to the remote session value used by ProxyServlet (among other uses).
              
-             Another example: session.USERNAME
+             Example: 
              
-             would lookup "USERNAME" within the http session.
+                 session.?USERNAME
              
-             Two context values are provided, "request" and "session" (if created),
-             and expression is evaluated via MVEL (see here: http://mvel.codehaus.org) 
+             would lookup "USERNAME" within the http session and return null if USERNAME
+             doesn't exist.
+             
+             Two context values are provided, "request" and "session" (if created previously,
+             null otherwise), and the expression is evaluated via MVEL 
+             (see here: http://mvel.codehaus.org) 
              
    -->
   <filter>

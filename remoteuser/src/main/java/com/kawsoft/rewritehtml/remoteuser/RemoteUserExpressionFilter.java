@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.Filter;
@@ -43,8 +44,13 @@ public class RemoteUserExpressionFilter implements Filter {
         String remoteUserExpression = filterConfig.getInitParameter("remote-user-expression");
         if (remoteUserExpression != null) {
             // compile the MVEL expression
-            this.remoteUserExpression = MVEL.compileExpression(remoteUserExpression);
-            log.info("Using remote user expression: " + remoteUserExpression);
+            try {
+                this.remoteUserExpression = MVEL.compileExpression(remoteUserExpression);
+                log.info("Using remote user expression: " + remoteUserExpression);
+            } catch(RuntimeException e) {
+                log.log(Level.WARNING, "Could not compile remote user expression: " + remoteUserExpression, e);
+                throw new ServletException("Could not compile remote user expression: " + remoteUserExpression, e);
+            }
         } else {
             throw new ServletException("The session-expression variable is requried for RemoteUserExpressionFilter"); 
         }
