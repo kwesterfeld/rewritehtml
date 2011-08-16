@@ -7,7 +7,7 @@
     <version>0.0.1-SNAPSHOT</version>
   </parent>
   <artifactId>rewritehtml-remoteuser</artifactId>
-  <packaging>war</packaging>
+  <packaging>jar</packaging>
   <name>Rewrite HTML RemoteUser Expression Provider</name>
   <dependencies>
     <dependency>
