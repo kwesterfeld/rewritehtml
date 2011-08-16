@@ -14,6 +14,8 @@
         <replacement from='url("/html/' to='url("/rportal/html/' />
         <replacement from='url(/html/' to='url(/rportal/html/' />
         
+        <replacement from='.jsp' to='.proxy-jsp' />
+        
         <replacement from="http://localhost:8080/" to="/" />
         
       </replacements>
@@ -27,4 +29,13 @@
       </replacements>
     </responseHeaderFilter>
   </responseHeaderFilters>
+  
+  <requestHeaderFilters>
+    <requestHeaderFilter header="Cookie">
+      <replacements>
+        <replacement from="Something*" to="Another" regex="true" first="true" />
+      </replacements>
+    </requestHeaderFilter>
+  </requestHeaderFilters>
+  
 </config>
