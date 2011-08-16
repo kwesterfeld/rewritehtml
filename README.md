@@ -82,9 +82,14 @@ on the fly.  However, the reload is delayed and can take up to 30 seconds.
 ## Usage
 
 To use this project in another project, one would need to construct a similar
-mapping for JProxy and Rewrite HTML Filter in another web application's web.xml.
-See example on how this is done.  NOTE: the mock remote user filter is only
-used for convenience in testing; it should *NEVER* be used for any other purpose.
+mapping for proxy-servlet (com.woonoz.proxy.servlet.ProxyServlet) and 
+Rewrite HTML Filter (com.kawsoft.rewritehtml.HtmlTranslationFilter) in another 
+web application's web.xml.  See the example on how this is done.  Another helpful
+filter is provided (com.kawsoft.rewritehtml.remoteuser.RemoteUserExpressionFilter)
+which allows a MVEL expression to be used to supply the value of 
+HttpServletRequest.getRemoteUser() using session data, or a constant,
+to a proxied backend application.  *DO NOT* map this as a constant as the 
+example has, unless you really know what you're doing!  
 
 ## Notes 
 
