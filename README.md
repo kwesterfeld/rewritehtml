@@ -1,5 +1,4 @@
-# Java Rewrite HTML Filter
-(rewritehtml)
+# Java Rewrite HTML Filter (rewritehtml)
 ===
 
 ## Introduction
@@ -107,8 +106,8 @@ project can be updated accordingly.
 ## TODO
 
 Various things needed:
- * a more formal rule system for determining whether to filter or not
- * if not filtering, completely pass-through response stream capture
- * response filter "dropping"; if header becomes blank in replacement, should
-   we drop it?
- * make reload interval configurable by filter init parameter
+
+  - A more formal rule system for determining whether to filter or not
+  - If not filtering, completely pass-through response stream capture
+  - Response filter "dropping"; if header becomes blank in replacement, should we drop it?
+  - Make reload interval configurable by filter init parameter
