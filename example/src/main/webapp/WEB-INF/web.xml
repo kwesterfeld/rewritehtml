@@ -76,33 +76,7 @@
   	<servlet-class>com.woonoz.proxy.servlet.ProxyServlet</servlet-class>
   	<init-param>
   		<param-name>target-url</param-name>
-  		<param-value>http://localhost:8080/rportal</param-value>
-  	</init-param>
-  	<init-param>
-  		<param-name>remote-user-header</param-name>
-  		<param-value>LIFERAY_SCREEN_NAME</param-value>
-  	</init-param>
-  	<load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet>
-  	<servlet-name>ProxyServlet-liferay-chat-portlet</servlet-name>
-  	<servlet-class>com.woonoz.proxy.servlet.ProxyServlet</servlet-class>
-  	<init-param>
-  		<param-name>target-url</param-name>
-  		<param-value>http://localhost:8080/chat-portlet</param-value>
-  	</init-param>
-  	<init-param>
-  		<param-name>remote-user-header</param-name>
-  		<param-value>LIFERAY_SCREEN_NAME</param-value>
-  	</init-param>
-  	<load-on-startup>1</load-on-startup>
-  </servlet>
-  <servlet>
-  	<servlet-name>ProxyServlet-liferay-social-networking-portlet</servlet-name>
-  	<servlet-class>com.woonoz.proxy.servlet.ProxyServlet</servlet-class>
-  	<init-param>
-  		<param-name>target-url</param-name>
-  		<param-value>http://localhost:8080/social-networking-portlet</param-value>
+  		<param-value>http://localhost:8080</param-value>
   	</init-param>
   	<init-param>
   		<param-name>remote-user-header</param-name>
@@ -116,11 +90,11 @@
     <url-pattern>/rportal/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ProxyServlet-liferay-chat-portlet</servlet-name>
+    <servlet-name>ProxyServlet-liferay</servlet-name>
     <url-pattern>/chat-portlet/*</url-pattern>
   </servlet-mapping>
   <servlet-mapping>
-    <servlet-name>ProxyServlet-liferay-social-networking-portlet</servlet-name>
+    <servlet-name>ProxyServlet-liferay</servlet-name>
     <url-pattern>/social-networking-portlet/*</url-pattern>
   </servlet-mapping>
  
