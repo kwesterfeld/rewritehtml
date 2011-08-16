@@ -24,6 +24,8 @@ public class Replacement {
 
     private String from;
     private String to;
+    private boolean regex;
+    private boolean first;
     
     public Replacement() {}
     
@@ -48,5 +50,23 @@ public class Replacement {
 
     public void setTo(String to) {
         this.to = to;
+    }
+
+    @XmlAttribute
+    public void setRegex(boolean regex) {
+        this.regex = regex;
+    }
+
+    public boolean isRegex() {
+        return regex;
+    }
+
+    @XmlAttribute
+    public void setFirst(boolean first) {
+        this.first = first;
+    }
+
+    public boolean isFirst() {
+        return first;
     }
 }

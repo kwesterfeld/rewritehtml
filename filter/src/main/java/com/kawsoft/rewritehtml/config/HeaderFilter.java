@@ -16,10 +16,26 @@
 
 package com.kawsoft.rewritehtml.config;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlAttribute;
 
-@XmlRootElement(name="responseHeaderFilter")
-public class ResponseHeaderFilter extends HeaderFilter {
+
+public abstract class HeaderFilter extends BaseFilter {
+
+    private String header;
     
-    public ResponseHeaderFilter() {}
+    public HeaderFilter() {}
+    
+    @Override
+    public String toString() {
+        return String.format("(header filter %s)%s", this.header, super.toString());
+    }
+
+    @XmlAttribute
+    public String getHeader() {
+        return header;
+    }
+
+    public void setHeader(String header) {
+        this.header = header;
+    }
 }

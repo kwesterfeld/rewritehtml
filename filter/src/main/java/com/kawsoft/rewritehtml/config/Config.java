@@ -28,12 +28,13 @@ public class Config {
 
     private List<ContentFilter> contentFilters = new ArrayList<ContentFilter>();
     private List<ResponseHeaderFilter> responseHeaderFilters = new ArrayList<ResponseHeaderFilter>();
+    private List<RequestHeaderFilter> requestHeaderFilters = new ArrayList<RequestHeaderFilter>();
     
     public Config() {}
     
     @Override
     public String toString() {
-        return String.format("(content filters %s)\n(header filters %s)", this.contentFilters.toString(), this.responseHeaderFilters.toString());
+        return String.format("(content filters %s)\n(request header filters %s)\n(response header filters %s)", this.contentFilters.toString(), this.getRequestHeaderFilters().toString(), this.responseHeaderFilters.toString());
     }
 
     @XmlElementWrapper(name="contentFilters")
@@ -54,5 +55,15 @@ public class Config {
 
     public List<ResponseHeaderFilter> getResponseHeaderFilters() {
         return responseHeaderFilters;
+    }
+
+    @XmlElementWrapper(name="requestHeaderFilters")
+    @XmlElement(name="requestHeaderFilter")
+    public void setRequestHeaderFilters(List<RequestHeaderFilter> requestHeaderFilters) {
+        this.requestHeaderFilters = requestHeaderFilters;
+    }
+
+    public List<RequestHeaderFilter> getRequestHeaderFilters() {
+        return requestHeaderFilters;
     }
 }

@@ -23,9 +23,11 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.charset.Charset;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
@@ -38,11 +40,13 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
 import com.kawsoft.rewritehtml.config.ContentFilter;
 import com.kawsoft.rewritehtml.config.Replacement;
+import com.kawsoft.rewritehtml.config.RequestHeaderFilter;
 import com.kawsoft.rewritehtml.config.ResponseHeaderFilter;
 
 
@@ -59,17 +63,87 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         if (filterXml == null) {
             throw new ServletException("Required filter-xml init parameter missing");
         }
+        log.info("Filter instance '" + filterConfig.getFilterName() + "' loading filter configuration: " + filterXml);
         this.configManager = new ConfigManager(filterXml, filterConfig.getServletContext());
     }
 
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain filterChain) throws IOException, ServletException {
 
-        ResponseWrapper wrapper = new ResponseWrapper((HttpServletRequest) req, (HttpServletResponse) res);
-        filterChain.doFilter(req, wrapper);
-        wrapper.commit();
+        HttpServletRequest httpReq = (HttpServletRequest) req;
+        if (log.isLoggable(Level.FINE)) {
+            log.info("Processing request for URI: " + httpReq.getRequestURI());
+        }
+        ResponseWrapper responseWrapper = new ResponseWrapper((HttpServletRequest) req, (HttpServletResponse) res);
+        filterChain.doFilter(new RequestWrapper(httpReq), responseWrapper);
+        responseWrapper.commit();
     }
 
     public void destroy() {
+    }
+    
+    private String replace(String value, List<Replacement> replacements) {
+        for (Replacement replacement: replacements) {
+            if (replacement.isRegex()) {
+                if (replacement.isFirst()) {
+                    value = value.replaceFirst(replacement.getFrom(), replacement.getTo());
+                } else {
+                    value = value.replaceAll(replacement.getFrom(), replacement.getTo());
+                }
+            } else {
+                if (replacement.isFirst()) {
+                    value = value.replaceFirst(Pattern.quote(replacement.getFrom()), replacement.getTo());
+                } else {
+                    value = value.replace(replacement.getFrom(), replacement.getTo());
+                }
+            }
+        }
+        return value;
+    }
+
+    private class RequestWrapper extends HttpServletRequestWrapper {
+
+        public RequestWrapper(HttpServletRequest request) {
+            super(request);
+        }
+
+        @Override
+        public String getHeader(String name) {
+            return processHeader(name, super.getHeader(name));
+        }
+
+        @SuppressWarnings("rawtypes")
+        @Override
+        public Enumeration getHeaders(final String name) {
+            final Enumeration delegate = super.getHeaders(name);
+            return new Enumeration() {
+
+                @Override
+                public boolean hasMoreElements() {
+                    return delegate.hasMoreElements();
+                }
+
+                @Override
+                public Object nextElement() {
+                    return processHeader(name, (String) delegate.nextElement());
+                }
+            };
+        }
+        
+        private String processHeader(String name, String value) {
+            if (value == null) {
+                return null;
+            }
+            for (RequestHeaderFilter requestHeaderFilter: configManager.getConfig().getRequestHeaderFilters()) {
+                if (name.equals(requestHeaderFilter.getHeader())) {
+                    String originalValue = value;
+                    value = replace(value, requestHeaderFilter.getReplacements());
+                    if (log.isLoggable(Level.FINE)) {
+                        log.fine("Returning updated request header " + name + " translated from " + originalValue + " to " + value + " for " + getRequestURI());
+                    }
+                }
+            }
+            return value;
+        }
     }
 
     private class ResponseWrapper extends HttpServletResponseWrapper {
@@ -168,18 +242,15 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             } else {
                 for (ResponseHeaderFilter responseHeaderFilter: configManager.getConfig().getResponseHeaderFilters()) {
                     if (name.equals(responseHeaderFilter.getHeader())) {
+                        String originalValue = value;
                         value = replace(value, responseHeaderFilter.getReplacements());
+                        if (log.isLoggable(Level.FINE)) {
+                            log.fine("Returning updated response header " + name + " translated from " + originalValue + " to " + value + " for " + this.request.getRequestURI());
+                        }
                     }
                 }
             }
 
-            return value;
-        }
-
-        private String replace(String value, List<Replacement> replacements) {
-            for (Replacement replacement: replacements) {
-                value = value.replace(replacement.getFrom(), replacement.getTo());
-            }
             return value;
         }
 

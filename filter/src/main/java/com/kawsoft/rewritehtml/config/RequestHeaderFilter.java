@@ -18,8 +18,8 @@ package com.kawsoft.rewritehtml.config;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="responseHeaderFilter")
-public class ResponseHeaderFilter extends HeaderFilter {
+@XmlRootElement(name="requestHeaderFilter")
+public class RequestHeaderFilter extends HeaderFilter {
     
-    public ResponseHeaderFilter() {}
+    public RequestHeaderFilter() {}
 }
