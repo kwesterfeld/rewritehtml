@@ -206,13 +206,27 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 
         @Override
         public void setHeader(String name, String value) {
+            String originalValue = value;
             value = processHeader(name, value);
+            if (value != null && value.trim().length() == 0) {
+                if (log.isLoggable(Level.FINE)) {
+                    log.fine("Dropping empty response header " + name + " translated from " + originalValue + " for " + this.request.getRequestURI());
+                }
+                return;
+            }
             super.setHeader(name, value);
         }
 
         @Override
         public void addHeader(String name, String value) {
+            String originalValue = value;
             value = processHeader(name, value);
+            if (value != null && value.trim().length() == 0) {
+                if (log.isLoggable(Level.FINE)) {
+                    log.fine("Dropping empty response header " + name + " translated from " + originalValue + " for " + this.request.getRequestURI());
+                }
+                return;
+            }
             super.addHeader(name, value);
         }
 

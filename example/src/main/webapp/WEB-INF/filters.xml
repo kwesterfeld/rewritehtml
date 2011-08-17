@@ -28,12 +28,17 @@
         <replacement from="http://localhost:8080/" to="/" />
       </replacements>
     </responseHeaderFilter>
+    <responseHeaderFilter header="Set-Cookie">
+      <replacements>
+        <replacement from=".*" to="" regex="true" />
+      </replacements>
+    </responseHeaderFilter>
   </responseHeaderFilters>
   
   <requestHeaderFilters>
     <requestHeaderFilter header="Cookie">
       <replacements>
-        <replacement from="Something*" to="Another" regex="true" first="true" />
+        <replacement from="Something" to="Another" regex="true" first="true" />
       </replacements>
     </requestHeaderFilter>
   </requestHeaderFilters>

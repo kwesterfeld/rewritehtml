@@ -63,6 +63,9 @@ public class RemoteUserExpressionFilter implements Filter {
         
         // Create servlet request which provides remote user value via expression evaluation.
         final HttpServletRequest servletRequest = ((HttpServletRequest)request);
+        if (log.isLoggable(Level.FINEST)) {
+            log.fine("Handling request: " + servletRequest.getRequestURI());
+        }
         HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper((HttpServletRequest) request) {
             
             @Override
