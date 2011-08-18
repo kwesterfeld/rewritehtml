@@ -11,7 +11,8 @@
            We remap inbound .proxy-jsp to .jsp
         </note>
         <from>^/(.*).proxy-jsp</from>
-        <to>/$1.jsp</to>
+        <to type="proxy">http://localhost:8080/$1.jsp</to>
     </rule>
+    
 </urlrewrite>
 
