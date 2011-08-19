@@ -22,11 +22,6 @@
       <artifactId>rewritehtml-filter</artifactId>
     </dependency>
     <dependency>
-      <groupId>${project.groupId}</groupId>
-      <version>${project.version}</version>
-      <artifactId>rewritehtml-remoteuser</artifactId>
-    </dependency>
-    <dependency>
       <groupId>com.googlecode.gwt-proxy-servlet</groupId>
       <artifactId>proxy</artifactId>
       <version>1.0.2-SNAPSHOT</version>

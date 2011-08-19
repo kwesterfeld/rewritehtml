@@ -136,5 +136,5 @@ Various things needed:
 
   - A more formal rule system for determining whether to filter or not
   - If not filtering, completely pass-through response stream capture
-  - Response filter "dropping"; if header becomes blank in replacement, should we drop it?
   - Make reload interval configurable by filter init parameter
+  - Being able to set/remove request/response headers
