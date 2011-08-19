@@ -24,6 +24,5 @@
   <modules>
     <module>filter</module>
     <module>example</module>
-    <module>remoteuser</module>
   </modules>
 </project>
