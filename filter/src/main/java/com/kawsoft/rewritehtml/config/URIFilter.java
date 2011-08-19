@@ -16,27 +16,13 @@
 
 package com.kawsoft.rewritehtml.config;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="contentFilter")
-public class ContentFilter extends BaseUriConstrainedFilter {
+public class URIFilter extends BaseUriConstrainedFilter {
     
-    private String mimeTypeMatch;
-    
-    public ContentFilter() {}
+    public URIFilter() {}
     
     @Override
     public String toString() {
-        return String.format("(content filter uri %s, mime type %s)%s", this.uriMatch, this.mimeTypeMatch, super.toString());
-    }
-
-    @XmlAttribute
-    public String getMimeTypeMatch() {
-        return mimeTypeMatch;
-    }
-
-    public void setMimeTypeMatch(String mimeTypeMatch) {
-        this.mimeTypeMatch = mimeTypeMatch;
+        return String.format("(uri filter uri %s, mime type %s)%s", this.uriMatch, super.toString());
     }
 }

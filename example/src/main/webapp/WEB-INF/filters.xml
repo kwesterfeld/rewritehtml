@@ -14,9 +14,7 @@
         <replacement from='url("/html/' to='url("/rportal/html/' />
         <replacement from='url(/html/' to='url(/rportal/html/' />
         
-        <replacement from='.jsp' to='.proxy-jsp' />
-        
-        <replacement from="http://localhost:8080/" to="/" />
+        <replacement from="http://localhost:8080/" to="/" type="replace-first" />
         
       </replacements>
     </contentFilter>
@@ -30,7 +28,7 @@
     </responseHeaderFilter>
     <responseHeaderFilter header="Set-Cookie">
       <replacements>
-        <replacement from=".*" to="" regex="true" />
+        <replacement from=".*" to="" type="replace-all-regex" />
       </replacements>
     </responseHeaderFilter>
   </responseHeaderFilters>
@@ -38,9 +36,17 @@
   <requestHeaderFilters>
     <requestHeaderFilter header="Cookie">
       <replacements>
-        <replacement from="Something" to="Another" regex="true" first="true" />
+        <replacement from="GUEST_LANGUAGE_ID=(.*?);" to="" type="replace-first-regex" />
       </replacements>
     </requestHeaderFilter>
   </requestHeaderFilters>
   
+  <uriFilters>
+    <uriFilter uriMatch=".*lightbulb.gif">
+      <replacements>
+        <replacement to='request.session.setAttribute("foo", "bar");return request.requestURI + "?foo=bar&amp;boo=baz;"' type="mvel" />
+      </replacements>
+    </uriFilter>
+  </uriFilters>
+    
 </config>

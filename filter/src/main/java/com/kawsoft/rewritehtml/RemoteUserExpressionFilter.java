@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
    
-package com.kawsoft.rewritehtml.remoteuser;
+package com.kawsoft.rewritehtml;
 
 import java.io.IOException;
 import java.io.Serializable;

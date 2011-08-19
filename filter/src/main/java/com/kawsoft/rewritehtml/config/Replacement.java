@@ -24,14 +24,13 @@ public class Replacement {
 
     private String from;
     private String to;
-    private boolean regex;
-    private boolean first;
+    private ReplaceType type = ReplaceType.ReplaceAll;
     
     public Replacement() {}
     
     @Override
     public String toString() {
-        return String.format("(from %s to %s)", this.from, this.to);
+        return String.format("(from %s to %s via type %s)", this.from, this.to, this.getType());
     }
 
     @XmlAttribute
@@ -53,20 +52,11 @@ public class Replacement {
     }
 
     @XmlAttribute
-    public void setRegex(boolean regex) {
-        this.regex = regex;
+    public void setType(ReplaceType type) {
+        this.type = type;
     }
 
-    public boolean isRegex() {
-        return regex;
-    }
-
-    @XmlAttribute
-    public void setFirst(boolean first) {
-        this.first = first;
-    }
-
-    public boolean isFirst() {
-        return first;
+    public ReplaceType getType() {
+        return type;
     }
 }

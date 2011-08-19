@@ -22,9 +22,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.Serializable;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.WeakHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -44,15 +49,20 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
+import org.mvel2.MVEL;
+
+import com.kawsoft.rewritehtml.config.BaseUriConstrainedFilter;
 import com.kawsoft.rewritehtml.config.ContentFilter;
 import com.kawsoft.rewritehtml.config.Replacement;
 import com.kawsoft.rewritehtml.config.RequestHeaderFilter;
 import com.kawsoft.rewritehtml.config.ResponseHeaderFilter;
+import com.kawsoft.rewritehtml.config.URIFilter;
 
 
 public class HtmlTranslationFilter implements javax.servlet.Filter {
     private static final Logger log = Logger.getLogger(HtmlTranslationFilter.class.getName());
     private ConfigManager configManager;
+    private Map<Replacement,Serializable> mvelExpressionCache = Collections.synchronizedMap(new WeakHashMap<Replacement, Serializable>());
 
     public HtmlTranslationFilter() {
         super();
@@ -73,6 +83,33 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         if (log.isLoggable(Level.FINE)) {
             log.info("Processing request for URI: " + httpReq.getRequestURI());
         }
+        
+        // Make URI replacements; if it was altered, forward it along.
+        String uri = httpReq.getRequestURI();
+        String uriOriginal = uri;
+        for (URIFilter uriFilter: this.configManager.getConfig().getUriFilters()) {
+            if (uri.matches(uriFilter.getUriMatch())) {
+                uri = replace(
+                        uri, 
+                        uriFilter.getReplacements(),
+                        "request",
+                        httpReq,
+                        "session",
+                        httpReq.getSession(false),
+                        "response",
+                        res
+                        );
+            }
+        }
+        if (uri != uriOriginal && !uri.equals(uriOriginal)) {
+            if (log.isLoggable(Level.FINE)) {
+                log.fine(String.format("Rewrote URI %s to %s and forwarding", uriOriginal, uri));
+            }
+            req.getRequestDispatcher(uri).forward(req, res);
+            return;
+        }
+        
+        // Do the filtering/translation
         ResponseWrapper responseWrapper = new ResponseWrapper((HttpServletRequest) req, (HttpServletResponse) res);
         filterChain.doFilter(new RequestWrapper(httpReq), responseWrapper);
         responseWrapper.commit();
@@ -81,20 +118,45 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
     public void destroy() {
     }
     
-    private String replace(String value, List<Replacement> replacements) {
+    private String replace(String value, List<Replacement> replacements, Object...args) {
         for (Replacement replacement: replacements) {
-            if (replacement.isRegex()) {
-                if (replacement.isFirst()) {
-                    value = value.replaceFirst(replacement.getFrom(), replacement.getTo());
-                } else {
-                    value = value.replaceAll(replacement.getFrom(), replacement.getTo());
+            switch (replacement.getType()) {
+            case ReplaceAll:
+                value = value.replace(replacement.getFrom(), replacement.getTo());
+                break;
+            case ReplaceFirst:
+                value = value.replaceFirst(Pattern.quote(replacement.getFrom()), replacement.getTo());
+                break;
+            case ReplaceAllRegex:
+                value = value.replaceAll(replacement.getFrom(), replacement.getTo());
+                break;
+            case ReplaceFirstRegex:
+                value = value.replaceFirst(replacement.getFrom(), replacement.getTo());
+                break;
+            case MVEL: 
+                try {
+                    Map<String,Object> vars = new HashMap<String,Object>();
+                    for (int i = 0; i < args.length; i+= 2) {
+                        vars.put((String) args[i], args[i+1]);
+                    }
+                    vars.put("value", value);
+                    Serializable expression = mvelExpressionCache.get(replacement);
+                    if (expression == null) {
+                        mvelExpressionCache.put(replacement, expression = MVEL.compileExpression(replacement.getTo()));
+                    }
+                    if (log.isLoggable(Level.FINE)) {
+                        log.fine("Evaluating " + value + " for replacement using expression " + replacement.getTo() + " using vars: " + vars);
+                    }
+                    Object rvalue = MVEL.executeExpression(expression, vars);
+                    if (rvalue == null) {
+                        return null;
+                    }
+                    value = rvalue.toString();
+                } catch (Exception e) {
+                    log.log(Level.WARNING, "Unexpected exception occurred while evaluating replacement expression: " + replacement.getTo(), e);
                 }
-            } else {
-                if (replacement.isFirst()) {
-                    value = value.replaceFirst(Pattern.quote(replacement.getFrom()), replacement.getTo());
-                } else {
-                    value = value.replace(replacement.getFrom(), replacement.getTo());
-                }
+ 
+                break;
             }
         }
         return value;
@@ -136,7 +198,15 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             for (RequestHeaderFilter requestHeaderFilter: configManager.getConfig().getRequestHeaderFilters()) {
                 if (name.equals(requestHeaderFilter.getHeader())) {
                     String originalValue = value;
-                    value = replace(value, requestHeaderFilter.getReplacements());
+                    value = replace(
+                            value, 
+                            requestHeaderFilter.getReplacements(),
+                            "header",
+                            name,
+                            "request", 
+                            getRequest(), 
+                            "session", 
+                            ((HttpServletRequest)getRequest()).getSession(false));
                     if (log.isLoggable(Level.FINE)) {
                         log.fine("Returning updated request header " + name + " translated from " + originalValue + " to " + value + " for " + getRequestURI());
                     }
@@ -152,7 +222,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         private boolean isWriter;
         private boolean isGzip;
         private boolean isDeflated;
-        private ContentFilter contentFilter;
+        private BaseUriConstrainedFilter contentFilter;
         private String charset;
         private HttpServletRequest request;
 
@@ -166,7 +236,16 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                 if (log.isLoggable(Level.FINE)) {
                     log.fine("Filtering content for: " + this.request.getRequestURI());
                 }
-                String content = replace(getAsString(), this.contentFilter.getReplacements());
+                String content = replace(
+                        getAsString(), 
+                        this.contentFilter.getReplacements(),
+                        "request",
+                        request,
+                        "session",
+                        request.getSession(false),
+                        "response",
+                        getResponse()
+                        );
 
                 if (this.isGzip || this.isDeflated) {
                     if (log.isLoggable(Level.FINE)) {
@@ -257,7 +336,17 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                 for (ResponseHeaderFilter responseHeaderFilter: configManager.getConfig().getResponseHeaderFilters()) {
                     if (name.equals(responseHeaderFilter.getHeader())) {
                         String originalValue = value;
-                        value = replace(value, responseHeaderFilter.getReplacements());
+                        value = replace(
+                                value, 
+                                responseHeaderFilter.getReplacements(),
+                                "header",
+                                name,
+                                "request",
+                                request,
+                                "session",
+                                request.getSession(false),
+                                "response",
+                                getResponse());
                         if (log.isLoggable(Level.FINE)) {
                             log.fine("Returning updated response header " + name + " translated from " + originalValue + " to " + value + " for " + this.request.getRequestURI());
                         }

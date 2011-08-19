@@ -28,7 +28,7 @@
    -->
   <filter>
      <filter-name>RemoteUserExpressionFilter</filter-name>
-     <filter-class>com.kawsoft.rewritehtml.remoteuser.RemoteUserExpressionFilter</filter-class>
+     <filter-class>com.kawsoft.rewritehtml.RemoteUserExpressionFilter</filter-class>
      <init-param>
          <param-name>remote-user-expression</param-name>
          <param-value>&quot;bruno&quot;</param-value>
@@ -50,15 +50,7 @@
          <param-value>/WEB-INF/filters.xml</param-value>
      </init-param>
   </filter>
-  <filter>
-     <filter-name>UrlRewriteFilter</filter-name>
-     <filter-class>org.tuckey.web.filters.urlrewrite.UrlRewriteFilter</filter-class>
-     <init-param>
-        <param-name>logLevel</param-name>
-        <param-value>STDOUT:debug</param-value>
-     </init-param>
-    </filter>
-  
+
   <filter-mapping>
      <filter-name>RemoteUserExpressionFilter</filter-name>
      <url-pattern>/*</url-pattern>
@@ -66,10 +58,6 @@
   <filter-mapping>
      <filter-name>HtmlTranslationFilter</filter-name>
      <url-pattern>/rportal/*</url-pattern>
-  </filter-mapping>
-  <filter-mapping>
-     <filter-name>UrlRewriteFilter</filter-name>
-     <url-pattern>*.proxy-jsp</url-pattern>
   </filter-mapping>
 
   <!-- NOTE: the ProxyServlet is used to host access to a back-end application.  In this case, 
