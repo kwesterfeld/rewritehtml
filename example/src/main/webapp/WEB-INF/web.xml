@@ -49,6 +49,10 @@
          <param-name>filter-xml</param-name>
          <param-value>/WEB-INF/filters.xml</param-value>
      </init-param>
+     <init-param>
+         <param-name>update-check-interval</param-name>
+         <param-value>0</param-value>
+     </init-param>
   </filter>
 
   <filter-mapping>
@@ -57,7 +61,7 @@
   </filter-mapping>
   <filter-mapping>
      <filter-name>HtmlTranslationFilter</filter-name>
-     <url-pattern>/rportal/*</url-pattern>
+     <url-pattern>/*</url-pattern>
   </filter-mapping>
 
   <!-- NOTE: the ProxyServlet is used to host access to a back-end application.  In this case, 

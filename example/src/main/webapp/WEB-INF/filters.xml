@@ -42,11 +42,15 @@
   </requestHeaderFilters>
   
   <uriFilters>
-    <uriFilter uriMatch=".*lightbulb.gif">
+    <uriFilter uriMatch=".*everything.jsp$" type="redirect">
       <replacements>
-        <replacement to='request.session.setAttribute("foo", "bar");return request.requestURI + "?foo=bar&amp;boo=baz;"' type="mvel" />
+        <replacement to='request.requestURL.toString().replace("8888", "8080") + "?" + request.queryString' type="mvel" />
+      </replacements>
+    </uriFilter> 
+    <uriFilter uriMatch=".*main.js$" type="filter">
+      <replacements>
+        <replacement to='request.requestURI + "?foo=bar&amp;boo=baz"' type="mvel" />
       </replacements>
     </uriFilter>
   </uriFilters>
-    
 </config>

@@ -16,13 +16,26 @@
 
 package com.kawsoft.rewritehtml.config;
 
+import javax.xml.bind.annotation.XmlAttribute;
+
 
 public class URIFilter extends BaseUriConstrainedFilter {
+    
+    private URIFilterType type = URIFilterType.Forward;
     
     public URIFilter() {}
     
     @Override
     public String toString() {
-        return String.format("(uri filter uri %s, mime type %s)%s", this.uriMatch, super.toString());
+        return String.format("(uri filter uri %s, type %s)%s", this.uriMatch, this.getType(), super.toString());
+    }
+
+    @XmlAttribute
+    public void setType(URIFilterType type) {
+        this.type = type;
+    }
+
+    public URIFilterType getType() {
+        return type;
     }
 }

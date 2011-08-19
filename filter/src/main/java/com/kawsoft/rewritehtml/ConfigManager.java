@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.xml.bind.JAXBContext;
@@ -34,6 +35,7 @@ public class ConfigManager {
     
     private static final long UPDATE_CHECK_INTERVAL = 30L * 1000L;
     private static final Logger log = Logger.getLogger(ConfigManager.class.getName());
+    private long updateCheckInterval = UPDATE_CHECK_INTERVAL;
     private final URL configLocationUrl;
     private final AtomicReference<Config> config = new AtomicReference<Config>();
     private final AtomicBoolean processingUpdate = new AtomicBoolean();
@@ -41,9 +43,24 @@ public class ConfigManager {
     private long configLastModifiedTime;
     private JAXBContext context;
 
-    public ConfigManager(String configLocation, ServletContext servletContext) throws ServletException {
+    public ConfigManager(FilterConfig filterConfig) throws ServletException {
+        
+        // Process the config location.
+        String configLocation = filterConfig.getInitParameter("filter-xml");
+        if (configLocation == null) {
+            throw new ServletException("Required filter-xml init parameter missing");
+        }
+        log.info("Filter instance '" + filterConfig.getFilterName() + "' loading filter configuration: " + configLocation);
+        
+        // Process the reload interval.
+        String updateCheckInterval = filterConfig.getInitParameter("update-check-interval");
+        if (updateCheckInterval != null) {
+            this.updateCheckInterval = Long.parseLong(updateCheckInterval) * 1000L;
+        }
+        log.info("Filter instance '" + filterConfig.getFilterName() + "' re-load filter interval: " + this.updateCheckInterval + "ms");
         
         // Determine the location url.
+        ServletContext servletContext = filterConfig.getServletContext();
         try {
             URL configLocationUrl = null;
             
@@ -115,7 +132,7 @@ public class ConfigManager {
                     if (this.nextUpdateTimeCheck < System.currentTimeMillis()) {
                         
                         // Our next time check will be now + interval.
-                        this.nextUpdateTimeCheck = System.currentTimeMillis() + UPDATE_CHECK_INTERVAL; 
+                        this.nextUpdateTimeCheck = System.currentTimeMillis() + this.updateCheckInterval; 
                         
                         // Get the file from URL.
                         File configFile = new File(this.configLocationUrl.getFile());

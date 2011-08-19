@@ -35,7 +35,7 @@ public class Config {
     
     @Override
     public String toString() {
-        return String.format("(content filters %s)\n(request header filters %s)\n(response header filters %s)", this.contentFilters.toString(), this.getRequestHeaderFilters().toString(), this.responseHeaderFilters.toString());
+        return String.format("(content filters %s)\n(request header filters %s)\n(response header filters %s)\n(uri filters %s)", this.contentFilters.toString(), this.getRequestHeaderFilters().toString(), this.responseHeaderFilters.toString(), this.uriFilters.toString());
     }
 
     @XmlElementWrapper(name="contentFilters")
