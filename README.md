@@ -53,21 +53,43 @@ simple one.  Here is an example:
 		  </replacements>
 		</contentFilter>
 	  </contentFilters>
+  
+	  <uriFilters>
+		<uriFilter uriMatch=".*lightbulb.gif">
+		  <replacements>
+			<replacement to='request.session.setAttribute("foo", "bar");return request.requestURI + "?foo=bar&amp;boo=baz;"' type="mvel" />
+		  </replacements>
+		</uriFilter>
+	  </uriFilters>
 	
 	  <responseHeaderFilters>
-		<responseHeaderFilter header="Location">
+		<responseHeaderFilter header="Set-Cookie">
 		  <replacements>
-			<replacement from="http://localhost:8080/" to="/" />
+			<replacement from=".*" to="" type="replace-all-regex" />
 		  </replacements>
 		</responseHeaderFilter>
 	  </responseHeaderFilters>
+  
+	  <uriFilters>
+		<uriFilter uriMatch=".*secured.jsp">
+		  <replacements>
+			<replacement to='request.requestURI + "?username=" + session.getAttribute("username")' type="mvel" />
+		  </replacements>
+		</uriFilter>
+	  </uriFilters>
 	</config>
 
-As implied by the xml elements, you can either filter content or headers.
-A location header is typically sent when receiving a redirect response to
-a POST, so this must be translated typically.  Currently a match
-specification for content is required for both mime type (ie. Content-Type)
-and the URI. 
+As implied by the xml elements, you can either filter content, request or 
+response headers, or perform URI redirection.  Replacement types can
+be one of the following replace-all, replace-first, replace-all-regex,
+replace-first-regex, and mvel.  The MVEL expression language is used
+to do arbitrary access to request context.  The name "value" is passed
+to the value being translated.
+
+For example: a location header is typically sent when receiving a 
+redirect response to a POST, so this must be translated typically.  
+Currently a match specification for content is required for both 
+mime type (ie. Content-Type) and the URI. 
 
 Using this filter to setup a new project, the workflow is to setup 
 the example, use firefox/firebug to watch traffic, and look for 404
@@ -85,7 +107,7 @@ To use this project in another project, one would need to construct a similar
 mapping for proxy-servlet (com.woonoz.proxy.servlet.ProxyServlet) and 
 Rewrite HTML Filter (com.kawsoft.rewritehtml.HtmlTranslationFilter) in another 
 web application's web.xml.  See the example on how this is done.  Another helpful
-filter is provided (com.kawsoft.rewritehtml.remoteuser.RemoteUserExpressionFilter)
+filter is provided (com.kawsoft.rewritehtml.RemoteUserExpressionFilter)
 which allows a MVEL expression to be used to supply the value of 
 HttpServletRequest.getRemoteUser() using session data, or a constant,
 to a proxied backend application.  *DO NOT* map this as a constant as the 
