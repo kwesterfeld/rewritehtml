@@ -170,16 +170,16 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         for (Replacement replacement: replacements) {
             switch (replacement.getType()) {
             case ReplaceAll:
-                value = value.replace(replacement.getFrom(), replacement.getTo());
+                value = value.replace(replacement.getFrom(), replacement.getEffectiveTo());
                 break;
             case ReplaceFirst:
-                value = value.replaceFirst(Pattern.quote(replacement.getFrom()), replacement.getTo());
+                value = value.replaceFirst(Pattern.quote(replacement.getFrom()), replacement.getEffectiveTo());
                 break;
             case ReplaceAllRegex:
-                value = value.replaceAll(replacement.getFrom(), replacement.getTo());
+                value = value.replaceAll(replacement.getFrom(), replacement.getEffectiveTo());
                 break;
             case ReplaceFirstRegex:
-                value = value.replaceFirst(replacement.getFrom(), replacement.getTo());
+                value = value.replaceFirst(replacement.getFrom(), replacement.getEffectiveTo());
                 break;
             case MVEL: 
                 try {
@@ -190,10 +190,10 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                     vars.put("value", value);
                     Serializable expression = mvelExpressionCache.get(replacement);
                     if (expression == null) {
-                        mvelExpressionCache.put(replacement, expression = MVEL.compileExpression(replacement.getTo()));
+                        mvelExpressionCache.put(replacement, expression = MVEL.compileExpression(replacement.getEffectiveTo()));
                     }
                     if (log.isLoggable(Level.FINE)) {
-                        log.fine("Evaluating " + value + " for replacement using expression " + replacement.getTo() + " using vars: " + vars);
+                        log.fine("Evaluating " + value + " for replacement using expression " + replacement.getEffectiveTo() + " using vars: " + vars);
                     }
                     Object rvalue = MVEL.executeExpression(expression, vars);
                     if (rvalue == null) {
@@ -201,7 +201,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                     }
                     value = rvalue.toString();
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "Unexpected exception occurred while evaluating replacement expression: " + replacement.getTo(), e);
+                    log.log(Level.WARNING, "Unexpected exception occurred while evaluating replacement expression: " + replacement.getEffectiveTo(), e);
                 }
  
                 break;
@@ -370,7 +370,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                         log.log(Level.WARNING, "Unexpected exception occurred during close", e);
                     }
                 }
-            } else {
+            } else if (this.stream != null) {
                 if (log.isLoggable(Level.FINE)) {
                     log.fine("Returning unmodified content for: " + this.request.getRequestURI());
                 }

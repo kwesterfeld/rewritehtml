@@ -18,12 +18,15 @@ package com.kawsoft.rewritehtml.config;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+import javax.xml.bind.annotation.XmlValue;
 
 @XmlRootElement(name="replacement")
 public class Replacement {
 
     private String from;
     private String to;
+    private String toValue;
     private ReplaceType type = ReplaceType.ReplaceAll;
     
     public Replacement() {}
@@ -58,5 +61,19 @@ public class Replacement {
 
     public ReplaceType getType() {
         return type;
+    }
+
+    @XmlValue
+    public void setToValue(String toValue) {
+        this.toValue = toValue;
+    }
+
+    public String getToValue() {
+        return toValue;
+    }
+    
+    @XmlTransient
+    public String getEffectiveTo() {
+        return this.toValue != null && this.toValue.trim().length() > 0 ? this.toValue : this.to;
     }
 }
