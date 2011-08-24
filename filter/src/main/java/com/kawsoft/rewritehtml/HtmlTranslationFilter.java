@@ -77,14 +77,15 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain filterChain) throws IOException, ServletException {
 
+        // Get the uri for possible rewrite.
         HttpServletRequest httpReq = (HttpServletRequest) req;
+        String uri = httpReq.getRequestURI();
+        String uriOriginal = uri;
         if (log.isLoggable(Level.FINE)) {
-            log.info("Processing request for URI: " + httpReq.getRequestURI());
+            log.info("Processing request for URI: " + uri);
         }
         
         // Make URI replacements; if it was altered, forward it along.
-        String uri = httpReq.getRequestURI();
-        String uriOriginal = uri;
         URIFilterType type = null;
         for (URIFilter uriFilter: this.configManager.getConfig().getUriFilters()) {
             if (uri.matches(uriFilter.getUriMatch())) {
@@ -103,7 +104,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                 break;
             }
         }
-        if (uri != uriOriginal && !uri.equals(uriOriginal)) {
+        if (uri != uriOriginal && uri != null && !uriOriginal.equals(uri)) {
             
             // Translate 
             String translatedURI = null;
@@ -139,7 +140,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             }
             
             if (log.isLoggable(Level.FINE)) {
-                log.fine("Performing dispatch by " + type);
+                log.fine("Performing uri rewrite dispatch by " + type);
             }
             if (type == URIFilterType.Forward) {
                 req.getRequestDispatcher(translatedURI).forward(req, res);
