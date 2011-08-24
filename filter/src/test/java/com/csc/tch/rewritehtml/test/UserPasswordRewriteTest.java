@@ -24,7 +24,7 @@ import org.junit.Test;
 
 import com.kawsoft.rewritehtml.HtmlTranslationFilter;
 
-public class UserPasswordRewriteTests {
+public class UserPasswordRewriteTest {
 
     private static final String DEFAULT_URL = "/context/jsp/target.jsp";
 
@@ -65,7 +65,7 @@ public class UserPasswordRewriteTests {
     private FilterConfig buildConfig() throws MalformedURLException {
         FilterConfig filterConfig = EasyMock.createMock(FilterConfig.class);
         EasyMock.expect(filterConfig.getFilterName()).andReturn("HTML Filter").anyTimes();
-        EasyMock.expect(filterConfig.getInitParameter("filter-xml")).andReturn("/" + UserPasswordRewriteTests.class.getSimpleName() + ".xml").anyTimes();
+        EasyMock.expect(filterConfig.getInitParameter("filter-xml")).andReturn("/" + UserPasswordRewriteTest.class.getSimpleName() + ".xml").anyTimes();
         EasyMock.expect(filterConfig.getInitParameter("update-check-interval")).andReturn("0").anyTimes();
         EasyMock.expect(filterConfig.getServletContext()).andReturn(buildServletContext()).anyTimes();
         EasyMock.replay(filterConfig);
@@ -74,7 +74,7 @@ public class UserPasswordRewriteTests {
 
     private ServletContext buildServletContext() throws MalformedURLException {
         ServletContext servletContext = EasyMock.createMock(ServletContext.class);
-        EasyMock.expect(servletContext.getResource("/" + UserPasswordRewriteTests.class.getSimpleName() + ".xml")).andReturn(UserPasswordRewriteTests.class.getResource("/" + UserPasswordRewriteTests.class.getSimpleName() + ".xml")).anyTimes();
+        EasyMock.expect(servletContext.getResource("/" + UserPasswordRewriteTest.class.getSimpleName() + ".xml")).andReturn(UserPasswordRewriteTest.class.getResource("/" + UserPasswordRewriteTest.class.getSimpleName() + ".xml")).anyTimes();
         EasyMock.replay(servletContext);
         return servletContext;
     }
