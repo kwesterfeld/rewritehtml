@@ -96,6 +96,35 @@ the example, use firefox/firebug to watch traffic, and look for 404
 responses.  Evaluate the 404 responses and look at source content, adjusting
 along the way the xml configuration to suit.
 
+### uriFilter
+
+Specify a uri match (uriMatch) and a replacement constant or MVEL expression
+to alter the inbound URI and/or query parameters.  The type= attribute of the 
+uriFilter XML attribute can be set to forward, filter, or redirect.
+
+An MVEL expression is passed the following context parameters: uri, request,
+session, response.
+
+### contentFilter
+
+A content filter specifies simple replacements (from/to) or complex MVEL
+expressions.  The uriMatch= xml attribute is required to match the URI of the
+content requested.
+
+An MVEL expression is passed the following context parameters: content, 
+request, session, response.
+
+### requestHeaderFilter/responseHeaderFilter
+
+A header filter specifies a simple replacement (from/to) or complex MVEL
+expression.  The header= attribute specifies the exact matching header which
+should be processed.
+
+An MVEL expression is passed the following context parameters: header,
+request, session, response.
+
+### 
+
 ## Configuration Reload
 
 Currently, the configuration contained in the filters.xml is reloaded 
