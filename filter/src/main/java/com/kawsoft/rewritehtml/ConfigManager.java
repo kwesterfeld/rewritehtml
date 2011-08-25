@@ -21,20 +21,21 @@ import java.io.InputStream;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.xml.bind.JAXBContext;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.kawsoft.rewritehtml.config.Config;
 
 public class ConfigManager {
     
     private static final long UPDATE_CHECK_INTERVAL = 30L * 1000L;
-    private static final Logger log = Logger.getLogger(ConfigManager.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(ConfigManager.class.getName());
     private long updateCheckInterval = UPDATE_CHECK_INTERVAL;
     private final URL configLocationUrl;
     private final AtomicReference<Config> config = new AtomicReference<Config>();
@@ -50,14 +51,14 @@ public class ConfigManager {
         if (configLocation == null) {
             throw new ServletException("Required filter-xml init parameter missing");
         }
-        log.info("Filter instance '" + filterConfig.getFilterName() + "' loading filter configuration: " + configLocation);
+        log.info("Filter instance '{}' loading filter configuration: {}", filterConfig.getFilterName(), configLocation);
         
         // Process the reload interval.
         String updateCheckInterval = filterConfig.getInitParameter("update-check-interval");
         if (updateCheckInterval != null) {
             this.updateCheckInterval = Long.parseLong(updateCheckInterval) * 1000L;
         }
-        log.info("Filter instance '" + filterConfig.getFilterName() + "' re-load filter interval: " + this.updateCheckInterval + "ms");
+        log.info("Filter instance '{}' re-load filter interval: {} ms", filterConfig.getFilterName(), this.updateCheckInterval);
         
         // Determine the location url.
         ServletContext servletContext = filterConfig.getServletContext();
@@ -68,19 +69,19 @@ public class ConfigManager {
             if (configLocation.indexOf(':') > 0) {
                 
                 configLocationUrl = new URL(configLocation);
-                log.info("Loading filter configuration from supplied URL: " + configLocationUrl);
+                log.info("Loading filter configuration from supplied URL: {}", configLocationUrl);
                 
             } else {
                 // Get by resource.
                 configLocationUrl = servletContext.getResource(configLocation);
                 if (configLocationUrl != null) {
-                    log.fine("Loaded filter configuration from servlet context: " + configLocationUrl);
+                    log.debug("Loaded filter configuration from servlet context: {}", configLocationUrl);
                 } else {
                     
                     // Get by classpath.
                     configLocationUrl = ConfigManager.class.getResource(configLocation);
                     if (configLocationUrl != null) {
-                        log.fine("Loaded filter configuration from class path: " + configLocationUrl);
+                        log.debug("Loaded filter configuration from class path: {}", configLocationUrl);
                     }
                 }
             }
@@ -89,7 +90,7 @@ public class ConfigManager {
             this.configLocationUrl = configLocationUrl;
             
         } catch (Exception e) {
-            log.log(Level.WARNING, "Could not load configuration: " + configLocation, e);
+            log.warn("Could not load configuration: {}", configLocation, e);
             throw new ServletException("Could not load configuration: " + configLocation, e);
         }
         if (this.configLocationUrl == null) {
@@ -108,7 +109,7 @@ public class ConfigManager {
         try {
             updateCheck();
         } catch (Exception e) {
-            log.log(Level.WARNING, "Unexpected exception occurred reloading configuration: " + this.configLocationUrl, e);
+            log.warn("Unexpected exception occurred reloading configuration: {}", this.configLocationUrl, e);
             
             // After succeeding on initial load, if we get a reload exception we would still
             // have a valid configuration, so we can proceed.
@@ -157,8 +158,7 @@ public class ConfigManager {
     }
 
     private void load() throws Exception {
-        if (log.isLoggable(Level.FINE))
-            log.fine("Loading filter configuration: " + this.configLocationUrl);
+        log.debug("Loading filter configuration: {}", this.configLocationUrl);
 
         // Unmarshall the stream.
         if (this.context == null) {
@@ -170,8 +170,7 @@ public class ConfigManager {
         } finally {
             ins.close();
         }
-        if (log.isLoggable(Level.FINE))
-            log.fine(String.format("Loaded %d content replacements and %d header replacements", this.config.get().getContentFilters().size(), this.config.get().getResponseHeaderFilters().size()));
+        log.debug("Loaded {} content replacements and {} header replacements", this.config.get().getContentFilters().size(), this.config.get().getResponseHeaderFilters().size());
     }
 }
  

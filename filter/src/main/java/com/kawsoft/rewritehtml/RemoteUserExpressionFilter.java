@@ -20,8 +20,6 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -33,9 +31,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 
 import org.mvel2.MVEL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class RemoteUserExpressionFilter implements Filter {
-    private static final Logger log = Logger.getLogger(RemoteUserExpressionFilter.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(RemoteUserExpressionFilter.class.getName());
     
     private String remoteUserExpressionValue;
     private Serializable remoteUserExpression;
@@ -47,10 +47,10 @@ public class RemoteUserExpressionFilter implements Filter {
             // compile the MVEL expression
             try {
                 this.remoteUserExpression = MVEL.compileExpression(remoteUserExpression);
-                log.info("Using remote user expression: " + remoteUserExpression);
+                log.info("Using remote user expression: {}", remoteUserExpression);
                 this.remoteUserExpressionValue = remoteUserExpression;
             } catch(RuntimeException e) {
-                log.log(Level.WARNING, "Could not compile remote user expression: " + remoteUserExpression, e);
+                log.warn("Could not compile remote user expression: {}", remoteUserExpression, e);
                 throw new ServletException("Could not compile remote user expression: " + remoteUserExpression, e);
             }
         } else {
@@ -63,9 +63,7 @@ public class RemoteUserExpressionFilter implements Filter {
         
         // Create servlet request which provides remote user value via expression evaluation.
         final HttpServletRequest servletRequest = ((HttpServletRequest)request);
-        if (log.isLoggable(Level.FINEST)) {
-            log.fine("Handling request: " + servletRequest.getRequestURI());
-        }
+        log.debug("Handling request: {}", servletRequest.getRequestURI());
         HttpServletRequestWrapper wrapper = new HttpServletRequestWrapper((HttpServletRequest) request) {
             
             @Override
@@ -82,16 +80,12 @@ public class RemoteUserExpressionFilter implements Filter {
                         Map<String,Object> vars = new HashMap<String,Object>();
                         vars.put("request", servletRequest);
                         vars.put("session", servletRequest.getSession(false));
-                        if (log.isLoggable(Level.FINE)) {
-                            log.fine("Evaluating URI " + servletRequest.getRequestURI() + " for remote user using expression " + remoteUserExpressionValue + " using vars: " + vars);
-                        }
+                        log.debug("Evaluating URI {} for remote user using expression {} using vars: {}", new Object[]{ servletRequest.getRequestURI(), remoteUserExpressionValue, vars });
                         Object result = MVEL.executeExpression(remoteUserExpression, vars);
-                        if (log.isLoggable(Level.FINE)) {
-                            log.fine("Evaluated URI " + servletRequest.getRequestURI() + " remote user request to: " + result);
-                        }
+                        log.debug("Evaluated URI {} remote user request to: {}", servletRequest.getRequestURI(), result);
                         return result == null ? null : result.toString();
                     } catch (Exception e) {
-                        log.log(Level.WARNING, "Unexpected exception occurred while evaluating remote user expression: " + remoteUserExpressionValue, e);
+                        log.warn("Unexpected exception occurred while evaluating remote user expression: {}", remoteUserExpressionValue, e);
                     }
                     return null;
                 } else {

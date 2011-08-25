@@ -32,8 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import java.util.zip.DeflaterInputStream;
 import java.util.zip.DeflaterOutputStream;
@@ -52,6 +50,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
 import org.mvel2.MVEL;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.kawsoft.rewritehtml.config.BaseUriConstrainedFilter;
 import com.kawsoft.rewritehtml.config.ContentFilter;
@@ -63,7 +63,7 @@ import com.kawsoft.rewritehtml.config.URIFilterType;
 
 
 public class HtmlTranslationFilter implements javax.servlet.Filter {
-    private static final Logger log = Logger.getLogger(HtmlTranslationFilter.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(HtmlTranslationFilter.class.getName());
     private ConfigManager configManager;
     private Map<Replacement,Serializable> mvelExpressionCache = Collections.synchronizedMap(new WeakHashMap<Replacement, Serializable>());
 
@@ -81,9 +81,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         HttpServletRequest httpReq = (HttpServletRequest) req;
         String uri = httpReq.getRequestURI();
         String uriOriginal = uri;
-        if (log.isLoggable(Level.FINE)) {
-            log.info("Processing request for URI: " + uri);
-        }
+        log.debug("Processing request for URI: {}", uri);
         
         // Make URI replacements; if it was altered, forward it along.
         URIFilterType type = null;
@@ -111,9 +109,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             String translatedQueryString = null;
             StringBuffer translatedURL = new StringBuffer();
             try {
-                if (log.isLoggable(Level.FINE)) {
-                    log.fine("Replacement URI is returned as: " + uri);
-                }
+                log.debug("Replacement URI is returned as: {}", uri);
                 URI translated = new URI(uri);
                 translatedURI = translated.getPath();
                 translatedQueryString = translated.getQuery();
@@ -131,17 +127,13 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                         translatedURL.append(translatedQueryString);
                     }
                 }
-                if (log.isLoggable(Level.FINE)) {
-                    log.fine(String.format("URI translation from: %s %s %s", httpReq.getRequestURI(), httpReq.getQueryString(), httpReq.getRequestURL().toString()));
-                    log.fine(String.format("URI translation to: %s %s %s", translatedURI, translatedQueryString, translatedURL.toString()));
-                }
+                log.debug("URI translation from: {} {} {}", new Object[]{ httpReq.getRequestURI(), httpReq.getQueryString(), httpReq.getRequestURL().toString() });
+                log.debug("URI translation to: {} {} {}", new Object[]{ translatedURI, translatedQueryString, translatedURL.toString() });
             } catch (URISyntaxException e) {
                 throw new ServletException("Unexpected exception translating URI: " + uri, e);
             }
             
-            if (log.isLoggable(Level.FINE)) {
-                log.fine("Performing uri rewrite dispatch by " + type);
-            }
+            log.debug("Performing uri rewrite dispatch by {}", type);
             if (type == URIFilterType.Forward) {
                 req.getRequestDispatcher(translatedURI).forward(req, res);
             } else  if (type == URIFilterType.Redirect) {
@@ -154,9 +146,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             }
         } else {
             // Do the filtering/translation
-            if (log.isLoggable(Level.FINE)) {
-                log.fine("Doing filtering");
-            }
+            log.debug("Doing filtering");
             ResponseWrapper responseWrapper = new ResponseWrapper((HttpServletRequest) req, (HttpServletResponse) res);
             filterChain.doFilter(new RequestWrapper(httpReq, null, null, null), responseWrapper);
             responseWrapper.commit();
@@ -193,16 +183,14 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                     if (expression == null) {
                         mvelExpressionCache.put(replacement, expression = MVEL.compileExpression(replacement.getEffectiveTo()));
                     }
-                    if (log.isLoggable(Level.FINE)) {
-                        log.fine("Evaluating " + value + " for replacement using expression " + replacement.getEffectiveTo() + " using vars: " + vars);
-                    }
+                    log.debug("Evaluating {} for replacement using expression {} and vars {}" + new Object[]{ value, replacement.getEffectiveTo(), vars });
                     Object rvalue = MVEL.executeExpression(expression, vars);
                     if (rvalue == null) {
                         return null;
                     }
                     value = rvalue.toString();
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "Unexpected exception occurred while evaluating replacement expression: " + replacement.getEffectiveTo(), e);
+                    log.warn("Unexpected exception occurred while evaluating replacement expression: {}", replacement.getEffectiveTo(), e);
                 }
  
                 break;
@@ -210,9 +198,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         }
         
         if (!originalValue.equals(value)) {
-            if (log.isLoggable(Level.FINEST)) {
-                log.finest(String.format("Performed replacement of %s from %s to %s", what, originalValue, value));
-            }
+            log.debug("Performed replacement of {} from {} to {}", new Object[]{ what, originalValue, value });
         }
         
         return value;
@@ -298,9 +284,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                             getRequest(), 
                             "session", 
                             ((HttpServletRequest)getRequest()).getSession(false));
-                    if (log.isLoggable(Level.FINE)) {
-                        log.fine("Returning updated request header " + name + " translated from " + originalValue + " to " + value + " for " + getRequestURI());
-                    }
+                    log.debug("Returning updated request header {} translated from {} to {} for {}", new Object[]{ name, originalValue, value, getRequestURI() });
                 }
             }
             return value;
@@ -324,9 +308,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 
         public void commit() throws IOException {
             if (this.isFiltered) {
-                if (log.isLoggable(Level.FINE)) {
-                    log.fine("Filtering content for: " + this.request.getRequestURI());
-                }
+                log.debug("Filtering content for: " + this.request.getRequestURI());
                 String content = replace(
                         "content",
                         getAsString(), 
@@ -340,9 +322,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                         );
 
                 if (this.isGzip || this.isDeflated) {
-                    if (log.isLoggable(Level.FINE)) {
-                        log.fine("Returning filtered, compressed content for: " + this.request.getRequestURI());
-                    }
+                    log.debug("Returning filtered, compressed content for: {}", this.request.getRequestURI());
                     ByteArrayOutputStream bos = new ByteArrayOutputStream();
                     OutputStream wrapped = this.isGzip ? new GZIPOutputStream(bos) : new DeflaterOutputStream(bos);
                     wrapped.write(this.charset != null ? content.getBytes(Charset.forName(this.charset)) : content.getBytes());
@@ -355,26 +335,22 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                     try {
                         out.close();
                     } catch (Exception e) {
-                        log.log(Level.WARNING, "Unexpected exception occurred during close", e);
+                        log.warn("Unexpected exception occurred during close", e);
                     }
                 } else {
 
-                    if (log.isLoggable(Level.FINE)) {
-                        log.fine("Returning filtered content for: " + this.request.getRequestURI());
-                    }
+                    log.debug("Returning filtered content for: {}", this.request.getRequestURI());
                     this.getResponse().setContentLength(content.length());
                     PrintWriter out = this.getResponse().getWriter();
                     out.write(content);
                     try {
                         out.close();
                     } catch (Exception e) {
-                        log.log(Level.WARNING, "Unexpected exception occurred during close", e);
+                        log.warn("Unexpected exception occurred during close", e);
                     }
                 }
             } else if (this.stream != null) {
-                if (log.isLoggable(Level.FINE)) {
-                    log.fine("Returning unmodified content for: " + this.request.getRequestURI());
-                }
+                log.debug("Returning unmodified content for: {}", this.request.getRequestURI());
                 byte[] data = this.stream.toByteArray();
                 this.getResponse().setContentLength(data.length);
                 ServletOutputStream out = this.getResponse().getOutputStream();
@@ -382,7 +358,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                 try {
                     out.close();
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "Unexpected exception occurred during close", e);
+                    log.warn("Unexpected exception occurred during close", e);
                 }
             }
         }
@@ -392,9 +368,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             String originalValue = value;
             value = processHeader(name, value);
             if (value != null && value.trim().length() == 0) {
-                if (log.isLoggable(Level.FINE)) {
-                    log.fine("Dropping empty response header " + name + " translated from " + originalValue + " for " + this.request.getRequestURI());
-                }
+                log.debug("Dropping empty response header {} translated from {} for {}", new Object[]{ name, originalValue, this.request.getRequestURI() });
                 return;
             }
             super.setHeader(name, value);
@@ -405,9 +379,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             String originalValue = value;
             value = processHeader(name, value);
             if (value != null && value.trim().length() == 0) {
-                if (log.isLoggable(Level.FINE)) {
-                    log.fine("Dropping empty response header " + name + " translated from " + originalValue + " for " + this.request.getRequestURI());
-                }
+                log.debug("Dropping empty response header {} translated from {} for {}", new Object[]{ name, originalValue, this.request.getRequestURI() });
                 return;
             }
             super.addHeader(name, value);
@@ -426,9 +398,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                         request.getRequestURI().matches(contentFilter.getUriMatch())) {
                         isFiltered = true;
                         this.contentFilter = contentFilter;
-                        if (log.isLoggable(Level.FINE)) {
-                            log.fine("Configured to filter (" + contentType + "/" + charset + ") content for: " + this.request.getRequestURI());
-                        }
+                        log.debug("Configured to filter ({}/{}) content for: {}", new Object[]{ contentType, charset, this.request.getRequestURI() });
                         break;
                     }
                 }
@@ -452,9 +422,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                                 request.getSession(false),
                                 "response",
                                 getResponse());
-                        if (log.isLoggable(Level.FINE)) {
-                            log.fine("Returning updated response header " + name + " translated from " + originalValue + " to " + value + " for " + this.request.getRequestURI());
-                        }
+                        log.debug("Returning updated response header {} translated from {} to {} for {}", new Object[]{ name, originalValue, value, this.request.getRequestURI() });
                     }
                 }
             }
