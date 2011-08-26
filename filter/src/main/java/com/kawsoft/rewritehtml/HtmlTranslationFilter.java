@@ -432,8 +432,10 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 
         @Override
         public ServletOutputStream getOutputStream() throws IOException {
-            // TODO: we might be able optimize if we can assume header has been set for content-type.  This 
-            //       would allow us to pass-through for non-filtered content.
+            if (!isFiltered) {
+                return super.getOutputStream();
+            }
+            
             if (this.isWriter) {
                 throw new IllegalStateException("Cannot call getOutputStream() if getWriter() has been called"); // Per servlet spec!
             }
@@ -445,6 +447,10 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 
         @Override
         public PrintWriter getWriter() throws IOException {
+            if (!isFiltered) {
+                return super.getWriter();
+            }
+            
             if (this.stream != null) {
                 throw new IllegalStateException("Cannot call getWriter() if getOutputStream() has been called"); // Per servlet spec!
             }

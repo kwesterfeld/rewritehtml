@@ -164,5 +164,4 @@ project can be updated accordingly.
 Various things needed:
 
   - A more formal rule system for determining whether to filter or not
-  - If not filtering, completely pass-through response stream capture
   - Being able to set/remove request/response headers
