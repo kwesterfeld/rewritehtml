@@ -144,20 +144,13 @@ example has, unless you really know what you're doing!
 
 ## Notes 
 
-As of August 14, 2011, this project depends on a forked copy of the 
-"proxy-servlet" found on github here: [https://github.com/mbaechler/proxy-servlet].
-The fork can be found here: [https://github.com/kwesterfeld/proxy-servlet]
+As of August 26, 2011, this project depends on a "SNAPSHOT" (ie. not-released-yet)
+copy of the "proxy-servlet" found on github here: [https://github.com/mbaechler/proxy-servlet].
+The release required is 1.0.3-SNAPSHOT.  When the 1.0.3 release is complete, 
+the -SNAPSHOT dependency should be removed.
 
-The fork contains a couple minor fixes and a new feature for sending
-the current "remote user" (ie. the currently logged in user) from the proxy
-to the back-end server using an HTTP header injection technique.
-
-Thus, to build this project, you must pull the fork, build it, and then
-you can build the rest of this project.
-
-At a later date the jproxy project should accept the upstream changes, 
-and should appear in the Apache maven repo.  When that happens, this 
-project can be updated accordingly.
+Thus, to build this project, you must download the sources to the proxy-servlet
+project, build it, and then you can build the rest of this project.
 
 ## TODO
 
