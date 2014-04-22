@@ -48,7 +48,6 @@
     </dependency>
   </dependencies>
   <build>
-    <finalName>rewritehtml-example</finalName>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -82,16 +81,20 @@
             <descriptorRef>src</descriptorRef>
           </descriptorRefs>
           <formats>
-            <format>zip</format>
+            <format>jar</format>
           </formats>
         </configuration>
         <executions>
           <execution>
-            <id>assemble-install</id>
+            <id>sources</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
+            <configuration>
+              <finalName>${project.artifactId}-${project.version}-sources</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+            </configuration>
           </execution>
         </executions>
       </plugin>
