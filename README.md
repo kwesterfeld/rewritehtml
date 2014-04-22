@@ -150,13 +150,17 @@ example has, unless you really know what you're doing!
 
 ## Notes 
 
-As of August 26, 2011, this project depends on a "SNAPSHOT" (ie. not-released-yet)
-copy of the "proxy-servlet" found on github here: [https://github.com/mbaechler/proxy-servlet].
-The release required is 1.0.3-SNAPSHOT.  When the 1.0.3 release is complete, 
-the -SNAPSHOT dependency should be removed.
+The example provided depends on the dsmiley github-hosted proxy servlet.  It's maven 
+coordinates are:
 
-Thus, to build this project, you must download the sources to the proxy-servlet
-project, build it, and then you can build the rest of this project.
+    <dependency>
+      <groupId>org.mitre.dsmiley.httpproxy</groupId>
+      <artifactId>smiley-http-proxy-servlet</artifactId>
+      <version>1.4</version>
+    </dependency>	
+
+A number of proxy servlets can be used in a similar fashion if desired along with 
+the rewrite filter chain.
 
 ## TODO
 
