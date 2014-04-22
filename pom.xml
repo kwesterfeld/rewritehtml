@@ -4,8 +4,31 @@
   <groupId>com.kawsoft.rewritehtml</groupId>
   <artifactId>rewritehtml-parent</artifactId>
   <packaging>pom</packaging>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0-SNAPSHOT</version>
   <name>Rewrite HTML Filter Parent</name>
+  
+
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <name>Kurt Westerfeld</name>
+      <email>kurt@westerfeld.com</email>
+    </developer>
+  </developers>
+
+  <scm>
+    <url>https://github.com/kwesterfeld/rewritehtml</url>
+    <connection>scm:git:https://kwesterfeld@github.com/kwesterfeld/rewritehtml.git</connection>
+    <developerConnection>scm:git:git@github.com:kwesterfeld/rewritehtml.git</developerConnection>
+  </scm>
+  
   <build>
     <pluginManagement>
       <plugins>
@@ -25,4 +48,41 @@
     <module>filter</module>
     <module>example</module>
   </modules>
+
+  <profiles>
+    <profile>
+      <id>release</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-source-plugin</artifactId>
+            <version>2.2.1</version>
+            <executions>
+              <execution>
+                <id>attach-sources</id>
+                <goals>
+                  <goal>jar-no-fork</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-javadoc-plugin</artifactId>
+            <version>2.9</version>
+            <executions>
+              <execution>
+                <id>attach-javadocs</id>
+                <goals>
+                  <goal>jar</goal>
+                </goals>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+
 </project>
