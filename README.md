@@ -132,11 +132,17 @@ on the fly.  However, the reload is delayed and can take up to 30 seconds.
 
 ## Usage
 
-To use this project in another project, one would need to construct a similar
-mapping for proxy-servlet (com.woonoz.proxy.servlet.ProxyServlet) and 
-Rewrite HTML Filter (com.kawsoft.rewritehtml.HtmlTranslationFilter) in another 
-web application's web.xml.  See the example on how this is done.  Another helpful
-filter is provided (com.kawsoft.rewritehtml.RemoteUserExpressionFilter)
+To use this project, typically a reverse-proxy scenario is used to 
+translate one URI to another, proxying to a back-end web resource of some kind.
+In this scenario, URI remapping might be needed for some or all of the web
+content being proxied.
+
+To accomplish this, one would need to construct a similar
+mapping for proxy-servlet (org.mitre.dsmiley.httpproxy.ProxyServlet, used in 
+example project) and the Rewrite HTML Filter (com.kawsoft.rewritehtml.HtmlTranslationFilter) 
+in a web application's web.xml.  See the example on how this is done.  
+
+Another helpful filter is provided (com.kawsoft.rewritehtml.RemoteUserExpressionFilter)
 which allows a MVEL expression to be used to supply the value of 
 HttpServletRequest.getRemoteUser() using session data, or a constant,
 to a proxied backend application.  *DO NOT* map this as a constant as the 
