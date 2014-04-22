@@ -1,4 +1,4 @@
-package com.kawsoft.rewritehtml.config;
+package com.westerfeld.rewritehtml.config;
 
 import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;

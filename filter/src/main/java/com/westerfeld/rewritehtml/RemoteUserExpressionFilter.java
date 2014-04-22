@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
    
-package com.kawsoft.rewritehtml;
+package com.westerfeld.rewritehtml;
 
 import java.io.IOException;
 import java.io.Serializable;

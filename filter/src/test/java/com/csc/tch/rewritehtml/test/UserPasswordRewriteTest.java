@@ -22,7 +22,7 @@ import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
 
-import com.kawsoft.rewritehtml.HtmlTranslationFilter;
+import com.westerfeld.rewritehtml.HtmlTranslationFilter;
 
 public class UserPasswordRewriteTest {
 

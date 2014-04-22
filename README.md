@@ -139,10 +139,10 @@ content being proxied.
 
 To accomplish this, one would need to construct a similar
 mapping for proxy-servlet (org.mitre.dsmiley.httpproxy.ProxyServlet, used in 
-example project) and the Rewrite HTML Filter (com.kawsoft.rewritehtml.HtmlTranslationFilter) 
+example project) and the Rewrite HTML Filter (com.westerfeld.rewritehtml.HtmlTranslationFilter) 
 in a web application's web.xml.  See the example on how this is done.  
 
-Another helpful filter is provided (com.kawsoft.rewritehtml.RemoteUserExpressionFilter)
+Another helpful filter is provided (com.westerfeld.rewritehtml.RemoteUserExpressionFilter)
 which allows a MVEL expression to be used to supply the value of 
 HttpServletRequest.getRemoteUser() using session data, or a constant,
 to a proxied backend application.  *DO NOT* map this as a constant as the 

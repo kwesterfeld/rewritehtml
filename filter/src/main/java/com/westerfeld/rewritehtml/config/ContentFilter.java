@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
 
-package com.kawsoft.rewritehtml.config;
+package com.westerfeld.rewritehtml.config;
 
 import java.util.ArrayList;
 import java.util.List;

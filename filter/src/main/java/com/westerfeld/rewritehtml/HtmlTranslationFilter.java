@@ -14,7 +14,7 @@
  *  limitations under the License.
  */
    
-package com.kawsoft.rewritehtml;
+package com.westerfeld.rewritehtml;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -55,13 +55,13 @@ import org.mvel2.MVEL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.kawsoft.rewritehtml.config.BaseUriConstrainedFilter;
-import com.kawsoft.rewritehtml.config.ContentFilter;
-import com.kawsoft.rewritehtml.config.Replacement;
-import com.kawsoft.rewritehtml.config.RequestHeaderFilter;
-import com.kawsoft.rewritehtml.config.ResponseHeaderFilter;
-import com.kawsoft.rewritehtml.config.URIFilter;
-import com.kawsoft.rewritehtml.config.URIFilterType;
+import com.westerfeld.rewritehtml.config.BaseUriConstrainedFilter;
+import com.westerfeld.rewritehtml.config.ContentFilter;
+import com.westerfeld.rewritehtml.config.Replacement;
+import com.westerfeld.rewritehtml.config.RequestHeaderFilter;
+import com.westerfeld.rewritehtml.config.ResponseHeaderFilter;
+import com.westerfeld.rewritehtml.config.URIFilter;
+import com.westerfeld.rewritehtml.config.URIFilterType;
 
 
 public class HtmlTranslationFilter implements javax.servlet.Filter {

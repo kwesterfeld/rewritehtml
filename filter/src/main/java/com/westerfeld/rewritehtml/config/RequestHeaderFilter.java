@@ -14,24 +14,12 @@
  *  limitations under the License.
  */
 
-package com.kawsoft.rewritehtml.config;
+package com.westerfeld.rewritehtml.config;
 
-import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
-@XmlRootElement(name="responseHeaderFilter")
-public class ResponseHeaderFilter extends HeaderFilter {
-	
-	private boolean supplyIfMissing;
+@XmlRootElement(name="requestHeaderFilter")
+public class RequestHeaderFilter extends HeaderFilter {
     
-    public ResponseHeaderFilter() {}
-
-    @XmlAttribute
-	public boolean isSupplyIfMissing() {
-		return supplyIfMissing;
-	}
-
-	public void setSupplyIfMissing(boolean supplyIfMissing) {
-		this.supplyIfMissing = supplyIfMissing;
-	}
+    public RequestHeaderFilter() {}
 }

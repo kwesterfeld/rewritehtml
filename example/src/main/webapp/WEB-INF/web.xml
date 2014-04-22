@@ -28,7 +28,7 @@
    -->
   <filter>
      <filter-name>RemoteUserExpressionFilter</filter-name>
-     <filter-class>com.kawsoft.rewritehtml.RemoteUserExpressionFilter</filter-class>
+     <filter-class>com.westerfeld.rewritehtml.RemoteUserExpressionFilter</filter-class>
      <init-param>
          <param-name>remote-user-expression</param-name>
          <param-value>&quot;bruno&quot;</param-value>
@@ -44,7 +44,7 @@
    -->
   <filter>
      <filter-name>HtmlTranslationFilter-liferay</filter-name>
-     <filter-class>com.kawsoft.rewritehtml.HtmlTranslationFilter</filter-class>
+     <filter-class>com.westerfeld.rewritehtml.HtmlTranslationFilter</filter-class>
      <init-param>
          <param-name>filter-xml</param-name>
          <param-value>/WEB-INF/filters-liferay.xml</param-value>
@@ -57,7 +57,7 @@
 
   <filter>
      <filter-name>HtmlTranslationFilter-slashdot</filter-name>
-     <filter-class>com.kawsoft.rewritehtml.HtmlTranslationFilter</filter-class>
+     <filter-class>com.westerfeld.rewritehtml.HtmlTranslationFilter</filter-class>
      <init-param>
          <param-name>filter-xml</param-name>
          <param-value>/WEB-INF/filters-slashdot.xml</param-value>

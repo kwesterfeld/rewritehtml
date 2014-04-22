@@ -14,28 +14,31 @@
  *  limitations under the License.
  */
 
-package com.kawsoft.rewritehtml.config;
+package com.westerfeld.rewritehtml.config;
 
-import javax.xml.bind.annotation.XmlAttribute;
+import java.util.ArrayList;
+import java.util.List;
 
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 
-public class URIFilter extends BaseUriConstrainedFilter {
+public abstract class BaseFilter {
+    private List<Replacement> replacements = new ArrayList<Replacement>();
     
-    private URIFilterType type = URIFilterType.Forward;
-    
-    public URIFilter() {}
+    public BaseFilter() {}
     
     @Override
     public String toString() {
-        return String.format("(uri filter uri %s, type %s)%s", this.uriMatch, this.getType(), super.toString());
+        return String.format("(replacements %s)", this.replacements.toString());
     }
 
-    @XmlAttribute
-    public void setType(URIFilterType type) {
-        this.type = type;
+    @XmlElementWrapper(name="replacements")
+    @XmlElement(name="replacement")
+    public List<Replacement> getReplacements() {
+        return replacements;
     }
 
-    public URIFilterType getType() {
-        return type;
+    public void setReplacements(List<Replacement> replacements) {
+        this.replacements = replacements;
     }
 }

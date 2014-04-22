@@ -14,12 +14,28 @@
  *  limitations under the License.
  */
 
-package com.kawsoft.rewritehtml.config;
+package com.westerfeld.rewritehtml.config;
 
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlAttribute;
 
-@XmlRootElement(name="requestHeaderFilter")
-public class RequestHeaderFilter extends HeaderFilter {
+
+public class URIFilter extends BaseUriConstrainedFilter {
     
-    public RequestHeaderFilter() {}
+    private URIFilterType type = URIFilterType.Forward;
+    
+    public URIFilter() {}
+    
+    @Override
+    public String toString() {
+        return String.format("(uri filter uri %s, type %s)%s", this.uriMatch, this.getType(), super.toString());
+    }
+
+    @XmlAttribute
+    public void setType(URIFilterType type) {
+        this.type = type;
+    }
+
+    public URIFilterType getType() {
+        return type;
+    }
 }
