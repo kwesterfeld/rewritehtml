@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<config>
+  <contentFilters>
+    <contentFilter mimeTypeMatch="text/html|text/css" uriMatch=".*">
+      <contentMap from='' to='/slash' />
+    </contentFilter>
+  </contentFilters>
+</config>
