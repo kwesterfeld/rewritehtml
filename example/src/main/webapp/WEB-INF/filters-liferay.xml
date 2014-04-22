@@ -31,6 +31,11 @@
         <replacement from=".*" to="" type="replace-all-regex" />
       </replacements>
     </responseHeaderFilter>
+    <responseHeaderfilter header="LIFERAY_SCREEN_NAME" supplyIfMissing="true">
+      <replacements>
+        <replacement from=".*" to="request.remoteUser" type="mvel" />
+      </replacements>
+    </responseHeaderfilter>
   </responseHeaderFilters>
   
   <requestHeaderFilters>

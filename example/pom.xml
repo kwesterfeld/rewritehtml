@@ -22,9 +22,9 @@
       <artifactId>rewritehtml-filter</artifactId>
     </dependency>
     <dependency>
-      <groupId>com.googlecode.gwt-proxy-servlet</groupId>
-      <artifactId>proxy</artifactId>
-      <version>1.0.3-SNAPSHOT</version>
+      <groupId>org.mitre.dsmiley.httpproxy</groupId>
+      <artifactId>smiley-http-proxy-servlet</artifactId>
+      <version>1.4</version>
     </dependency>	
     <dependency>
       <groupId>javax.servlet</groupId>

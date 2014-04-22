@@ -43,11 +43,11 @@
              URI either in the webapp itself, classpath, or URL.
    -->
   <filter>
-     <filter-name>HtmlTranslationFilter</filter-name>
+     <filter-name>HtmlTranslationFilter-liferay</filter-name>
      <filter-class>com.kawsoft.rewritehtml.HtmlTranslationFilter</filter-class>
      <init-param>
          <param-name>filter-xml</param-name>
-         <param-value>/WEB-INF/filters.xml</param-value>
+         <param-value>/WEB-INF/filters-liferay.xml</param-value>
      </init-param>
      <init-param>
          <param-name>update-check-interval</param-name>
@@ -55,13 +55,39 @@
      </init-param>
   </filter>
 
+  <filter>
+     <filter-name>HtmlTranslationFilter-slashdot</filter-name>
+     <filter-class>com.kawsoft.rewritehtml.HtmlTranslationFilter</filter-class>
+     <init-param>
+         <param-name>filter-xml</param-name>
+         <param-value>/WEB-INF/filters-slashdot.xml</param-value>
+     </init-param>
+     <init-param>
+         <param-name>update-check-interval</param-name>
+         <param-value>0</param-value>
+     </init-param>
+  </filter>
+  
   <filter-mapping>
      <filter-name>RemoteUserExpressionFilter</filter-name>
      <url-pattern>/*</url-pattern>
   </filter-mapping>
   <filter-mapping>
-     <filter-name>HtmlTranslationFilter</filter-name>
-     <url-pattern>/*</url-pattern>
+    <filter-name>HtmlTranslationFilter-liferay</filter-name>
+    <url-pattern>/rportal/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>HtmlTranslationFilter-liferay</filter-name>
+    <url-pattern>/chat-portlet/*</url-pattern>
+  </filter-mapping>
+  <filter-mapping>
+    <filter-name>HtmlTranslationFilter-liferay</filter-name>
+    <url-pattern>/social-networking-portlet/*</url-pattern>
+  </filter-mapping>
+  
+  <filter-mapping>
+     <filter-name>HtmlTranslationFilter-slashdot</filter-name>
+     <url-pattern>/slash/*</url-pattern>
   </filter-mapping>
 
   <!-- NOTE: the ProxyServlet is used to host access to a back-end application.  In this case, 
@@ -73,20 +99,27 @@
              	auto.login.hooks=com.liferay.portal.security.auth.RequestHeaderAutoLogin
              	
              This auto login module expects a header named LIFERAY_SCREEN_NAME, which we
-             map to remote user name for the currently logged in application.  
+             map to remote user name for the currently logged in application in the filter 
+             configuration.  
    -->
   <servlet>
   	<servlet-name>ProxyServlet-liferay</servlet-name>
-  	<servlet-class>com.woonoz.proxy.servlet.ProxyServlet</servlet-class>
+  	<servlet-class>org.mitre.dsmiley.httpproxy.ProxyServlet</servlet-class>
   	<init-param>
-  		<param-name>target-url</param-name>
+  		<param-name>targetUri</param-name>
   		<param-value>http://localhost:8080</param-value>
   	</init-param>
-  	<init-param>
-  		<param-name>remote-user-header</param-name>
-  		<param-value>LIFERAY_SCREEN_NAME</param-value>
-  	</init-param>
   	<load-on-startup>1</load-on-startup>
+  </servlet>
+
+  <servlet>
+    <servlet-name>ProxyServlet-slashdot</servlet-name>
+    <servlet-class>org.mitre.dsmiley.httpproxy.ProxyServlet</servlet-class>
+    <init-param>
+      <param-name>targetUri</param-name>
+      <param-value>http://slashdot.org</param-value>
+    </init-param>
+    <load-on-startup>1</load-on-startup>
   </servlet>
 
   <servlet-mapping>
@@ -100,6 +133,11 @@
   <servlet-mapping>
     <servlet-name>ProxyServlet-liferay</servlet-name>
     <url-pattern>/social-networking-portlet/*</url-pattern>
+  </servlet-mapping>
+  
+  <servlet-mapping>
+    <servlet-name>ProxyServlet-slashdot</servlet-name>
+    <url-pattern>/slash/*</url-pattern>
   </servlet-mapping>
  
 </web-app>
