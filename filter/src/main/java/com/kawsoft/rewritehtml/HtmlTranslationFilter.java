@@ -29,8 +29,10 @@ import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.regex.Pattern;
 import java.util.zip.DeflaterInputStream;
@@ -140,6 +142,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                 ((HttpServletResponse) res).sendRedirect(translatedURL.toString());
             } else {
                 // Do the filtering/translation
+                log.debug("Doing filtering");
                 ResponseWrapper responseWrapper = new ResponseWrapper((HttpServletRequest) req, (HttpServletResponse) res);
                 filterChain.doFilter(new RequestWrapper(httpReq, translatedURL, translatedURI, translatedQueryString), responseWrapper);
                 responseWrapper.commit();
@@ -297,9 +300,11 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         private boolean isWriter;
         private boolean isGzip;
         private boolean isDeflated;
+        private boolean isCommitted;
         private BaseUriConstrainedFilter contentFilter;
         private String charset;
         private HttpServletRequest request;
+        private Set<String> headers = new HashSet<String>();
 
         public ResponseWrapper(HttpServletRequest request, HttpServletResponse response) {
             super(response);
@@ -307,61 +312,78 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         }
 
         public void commit() throws IOException {
-            if (this.isFiltered) {
-                log.debug("Filtering content for: " + this.request.getRequestURI());
-                String content = replace(
-                        "content",
-                        getAsString(), 
-                        this.contentFilter.getReplacements(),
-                        "request",
-                        request,
-                        "session",
-                        request.getSession(false),
-                        "response",
-                        getResponse()
-                        );
-
-                if (this.isGzip || this.isDeflated) {
-                    log.debug("Returning filtered, compressed content for: {}", this.request.getRequestURI());
-                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-                    OutputStream wrapped = this.isGzip ? new GZIPOutputStream(bos) : new DeflaterOutputStream(bos);
-                    wrapped.write(this.charset != null ? content.getBytes(Charset.forName(this.charset)) : content.getBytes());
-                    wrapped.close();
-
-                    byte[] data = bos.toByteArray();
-                    this.getResponse().setContentLength(data.length);
-                    ServletOutputStream out = this.getResponse().getOutputStream();
-                    out.write(data);
-                    try {
-                        out.close();
-                    } catch (Exception e) {
-                        log.warn("Unexpected exception occurred during close", e);
-                    }
-                } else {
-
-                    log.debug("Returning filtered content for: {}", this.request.getRequestURI());
-                    this.getResponse().setContentLength(content.length());
-                    PrintWriter out = this.getResponse().getWriter();
-                    out.write(content);
-                    try {
-                        out.close();
-                    } catch (Exception e) {
-                        log.warn("Unexpected exception occurred during close", e);
-                    }
-                }
-            } else if (this.stream != null) {
-                log.debug("Returning unmodified content for: {}", this.request.getRequestURI());
-                byte[] data = this.stream.toByteArray();
-                this.getResponse().setContentLength(data.length);
-                ServletOutputStream out = this.getResponse().getOutputStream();
-                out.write(data);
-                try {
-                    out.close();
-                } catch (Exception e) {
-                    log.warn("Unexpected exception occurred during close", e);
-                }
-            }
+        	
+        	if (!isCommitted) {
+	        	// If we are filtering, and we have a stream...
+	            if (this.isFiltered && this.stream != null && !this.stream.isEmpty()) {
+	        		isCommitted = true;
+	        		supplyDefaultHeaders();
+	                log.debug("Filtering content for: " + this.request.getRequestURI());
+	                String content = replace(
+	                        "content",
+	                        getAsString(), 
+	                        this.contentFilter.getReplacements(),
+	                        "request",
+	                        request,
+	                        "session",
+	                        request.getSession(false),
+	                        "response",
+	                        getResponse()
+	                        );
+	
+	                if (this.isGzip || this.isDeflated) {
+	                    log.debug("Returning filtered, compressed content for: {}", this.request.getRequestURI());
+	                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
+	                    OutputStream wrapped = this.isGzip ? new GZIPOutputStream(bos) : new DeflaterOutputStream(bos);
+	                    wrapped.write(this.charset != null ? content.getBytes(Charset.forName(this.charset)) : content.getBytes());
+	                    wrapped.close();
+	
+	                    byte[] data = bos.toByteArray();
+	                    this.getResponse().setContentLength(data.length);
+	                    ServletOutputStream out = this.getResponse().getOutputStream();
+	                    out.write(data);
+	                    try {
+	                        out.close();
+	                    } catch (Exception e) {
+	                        log.warn("Unexpected exception occurred during close", e);
+	                    }
+	                } else {
+	
+	                    log.debug("Returning filtered content for: {}", this.request.getRequestURI());
+	                    this.getResponse().setContentLength(content.length());
+	                    PrintWriter out = this.getResponse().getWriter();
+	                    out.write(content);
+	                    try {
+	                        out.close();
+	                    } catch (Exception e) {
+	                        log.warn("Unexpected exception occurred during close", e);
+	                    }
+	                }
+	            } else if (this.stream != null && !this.stream.isEmpty()) {
+	        		isCommitted = true;
+	        		supplyDefaultHeaders();
+	                log.debug("Returning unmodified content for: {}", this.request.getRequestURI());
+	                byte[] data = this.stream.toByteArray();
+	                this.getResponse().setContentLength(data.length);
+	                ServletOutputStream out = this.getResponse().getOutputStream();
+	                out.write(data);
+	                try {
+	                    out.close();
+	                } catch (Exception e) {
+	                    log.warn("Unexpected exception occurred during close", e);
+	                }
+	            }
+        	}
         }
+
+		private void supplyDefaultHeaders() {
+			// See if there is any supply default response headers.
+        	for (ResponseHeaderFilter responseHeaderFilter: configManager.getConfig().getResponseHeaderFilters()) {
+        		if (responseHeaderFilter.isSupplyIfMissing() && !headers.contains(responseHeaderFilter.getHeader())) {
+        			this.addHeader(responseHeaderFilter.getHeader(), "");
+        		}
+        	}
+		}
 
         @Override
         public void setHeader(String name, String value) {
@@ -386,6 +408,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         }
 
         private String processHeader(String name, String value) {
+        	headers.add(name);
             if (name.equals("Content-Type")) {
                 
                 String contentType = value.replaceAll("([^;]*).*", "$1");
@@ -432,15 +455,11 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 
         @Override
         public ServletOutputStream getOutputStream() throws IOException {
-            if (!isFiltered) {
-                return super.getOutputStream();
-            }
-            
             if (this.isWriter) {
                 throw new IllegalStateException("Cannot call getOutputStream() if getWriter() has been called"); // Per servlet spec!
             }
             if (this.stream == null) {
-                this.stream = new WrappedServletOutputStream();
+                this.stream = new WrappedServletOutputStream(this);
             }
             return this.stream;
         }
@@ -503,16 +522,33 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 
     private static class WrappedServletOutputStream extends ServletOutputStream {
 
-        private final ByteArrayOutputStream delegate = new ByteArrayOutputStream();
+		private final ByteArrayOutputStream delegate = new ByteArrayOutputStream();
+		private ResponseWrapper wrapper;
+		private boolean empty = true;
+		
+		public WrappedServletOutputStream(ResponseWrapper wrapper) {
+			this.wrapper = wrapper;
+		}
 
-        @Override
+        public boolean isEmpty() {
+			return empty;
+		}
+
+		@Override
         public void write(int b) throws IOException {
             this.delegate.write(b);
+            empty = false;
         }
 
         public byte[] toByteArray() {
             return this.delegate.toByteArray();
         }
+        
+        @Override
+		public void close() throws IOException {
+			super.close();
+			this.wrapper.commit();
+		}
     }
 }
 

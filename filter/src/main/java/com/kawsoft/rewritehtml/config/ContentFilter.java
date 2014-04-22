@@ -16,6 +16,9 @@
 
 package com.kawsoft.rewritehtml.config;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -23,12 +26,13 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class ContentFilter extends BaseUriConstrainedFilter {
     
     private String mimeTypeMatch;
+	private ContentMap contentMap;
     
     public ContentFilter() {}
     
     @Override
     public String toString() {
-        return String.format("(content filter uri %s, mime type %s)%s", this.uriMatch, this.mimeTypeMatch, super.toString());
+        return String.format("(content filter uri %s, mime type %s%s)%s", this.uriMatch, this.mimeTypeMatch, this.contentMap != null ? ", " + this.contentMap.toString() : "", super.toString());
     }
 
     @XmlAttribute
@@ -39,4 +43,37 @@ public class ContentFilter extends BaseUriConstrainedFilter {
     public void setMimeTypeMatch(String mimeTypeMatch) {
         this.mimeTypeMatch = mimeTypeMatch;
     }
+    
+    public ContentMap getContentMap() {
+    	return this.contentMap;
+    }
+
+	public void setContentMap(ContentMap contentMap) {
+		this.contentMap = contentMap;
+	}
+
+	@Override
+	public List<Replacement> getReplacements() {
+		List<Replacement> result = super.getReplacements();
+		
+		if (this.contentMap != null) {
+			result = new ArrayList<Replacement>(result);
+			
+			// Add pre-defined content filter replacements.
+			String from = this.contentMap.getFrom();
+			String to = this.contentMap.getTo();
+			if (from == null) {
+				from = "";
+			}
+			if (to == null) {
+				to = "";
+			}
+			result.add(new Replacement("href=(['\"])/([^/])" + from, "href=$1" + to + "$2", ReplaceType.ReplaceAllRegex));
+			result.add(new Replacement("src=(['\"])/([^/])" + from, "src=$1" + to + "$2", ReplaceType.ReplaceAllRegex));
+			result.add(new Replacement("url\\((['\"])/([^/])" + from, "url($1" + to + "$2", ReplaceType.ReplaceAllRegex));
+			result.add(new Replacement("url\\(/([^/])" + from, "url(/$1" + to, ReplaceType.ReplaceAllRegex));
+		}
+		
+		return result;
+	}
 }

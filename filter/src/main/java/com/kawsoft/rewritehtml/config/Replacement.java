@@ -30,8 +30,14 @@ public class Replacement {
     private ReplaceType type = ReplaceType.ReplaceAll;
     
     public Replacement() {}
-    
-    @Override
+
+    public Replacement(String from, String to, ReplaceType type) {
+		this.from = from;
+		this.to = to;
+		this.type = type;
+	}
+
+	@Override
     public String toString() {
         return String.format("(from %s to %s via type %s)", this.from, this.to, this.getType());
     }

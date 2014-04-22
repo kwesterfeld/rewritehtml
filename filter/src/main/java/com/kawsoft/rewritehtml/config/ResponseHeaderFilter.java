@@ -16,10 +16,22 @@
 
 package com.kawsoft.rewritehtml.config;
 
+import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlRootElement;
 
 @XmlRootElement(name="responseHeaderFilter")
 public class ResponseHeaderFilter extends HeaderFilter {
+	
+	private boolean supplyIfMissing;
     
     public ResponseHeaderFilter() {}
+
+    @XmlAttribute
+	public boolean isSupplyIfMissing() {
+		return supplyIfMissing;
+	}
+
+	public void setSupplyIfMissing(boolean supplyIfMissing) {
+		this.supplyIfMissing = supplyIfMissing;
+	}
 }
