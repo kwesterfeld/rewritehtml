@@ -68,12 +68,21 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
     private static final Logger log = LoggerFactory.getLogger(HtmlTranslationFilter.class.getName());
     private ConfigManager configManager;
     private Map<Replacement,Serializable> mvelExpressionCache = Collections.synchronizedMap(new WeakHashMap<Replacement, Serializable>());
+    private Map<String,Object> context;
 
     public HtmlTranslationFilter() {
         super();
     }
 
-    public void init(FilterConfig filterConfig) throws ServletException {
+    public Map<String,Object> getContext() {
+		return context;
+	}
+
+	public void setContext(Map<String,Object> context) {
+		this.context = context;
+	}
+
+	public void init(FilterConfig filterConfig) throws ServletException {
         this.configManager = new ConfigManager(filterConfig);
     }
 
@@ -180,6 +189,9 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                     Map<String,Object> vars = new HashMap<String,Object>();
                     for (int i = 0; i < args.length; i+= 2) {
                         vars.put((String) args[i], args[i+1]);
+                    }
+                    if (this.context != null) {
+                    	vars.put("context", this.context);
                     }
                     vars.put("value", value);
                     Serializable expression = mvelExpressionCache.get(replacement);
