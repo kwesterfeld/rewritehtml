@@ -10,7 +10,7 @@
   <groupId>com.westerfeld.rewritehtml</groupId>
   <artifactId>com.westerfeld.rewritehtml</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.1</version>
+  <version>1.0.2-SNAPSHOT</version>
   <name>Rewrite HTML Filter Parent</name>
 
   <licenses>
@@ -32,7 +32,7 @@
     <url>https://github.com/kwesterfeld/rewritehtml</url>
     <connection>scm:git:https://kwesterfeld@github.com/kwesterfeld/rewritehtml.git</connection>
     <developerConnection>scm:git:git@github.com:kwesterfeld/rewritehtml.git</developerConnection>
-    <tag>com.westerfeld.rewritehtml-1.0.1</tag>
+    <tag>HEAD</tag>
   </scm>
   
   <distributionManagement>
