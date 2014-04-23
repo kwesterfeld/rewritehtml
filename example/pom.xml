@@ -94,6 +94,30 @@
             <configuration>
               <finalName>${project.artifactId}-${project.version}-sources</finalName>
               <appendAssemblyId>false</appendAssemblyId>
+              <attach>false</attach>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <inherited>false</inherited>
+        <executions>
+          <execution>
+            <id>attach-artifacts</id>
+            <phase>package</phase>
+            <goals>
+              <goal>attach-artifact</goal>
+            </goals>
+            <configuration>
+              <artifacts>
+                <artifact>
+                  <file>${project.build.directory}/${project.artifactId}-${project.version}-sources.jar</file>
+                  <type>jar</type>
+                  <classifier>sources</classifier>
+                </artifact>
+              </artifacts>
             </configuration>
           </execution>
         </executions>
