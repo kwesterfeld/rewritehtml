@@ -30,6 +30,8 @@ import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -57,9 +59,9 @@ import org.slf4j.LoggerFactory;
 
 import com.westerfeld.rewritehtml.config.BaseUriConstrainedFilter;
 import com.westerfeld.rewritehtml.config.ContentFilter;
+import com.westerfeld.rewritehtml.config.HeaderFilter;
 import com.westerfeld.rewritehtml.config.Replacement;
 import com.westerfeld.rewritehtml.config.RequestHeaderFilter;
-import com.westerfeld.rewritehtml.config.ResponseHeaderFilter;
 import com.westerfeld.rewritehtml.config.URIFilter;
 import com.westerfeld.rewritehtml.config.URIFilterType;
 
@@ -138,8 +140,8 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                         translatedURL.append(translatedQueryString);
                     }
                 }
-                log.debug("URI translation from: {} {} {}", new Object[]{ httpReq.getRequestURI(), httpReq.getQueryString(), httpReq.getRequestURL().toString() });
-                log.debug("URI translation to: {} {} {}", new Object[]{ translatedURI, translatedQueryString, translatedURL.toString() });
+                log.debug("URI translation from: {} {} {}", httpReq.getRequestURI(), httpReq.getQueryString(), httpReq.getRequestURL().toString());
+                log.debug("URI translation to: {} {} {}", translatedURI, translatedQueryString, translatedURL.toString());
             } catch (URISyntaxException e) {
                 throw new ServletException("Unexpected exception translating URI: " + uri, e);
             }
@@ -198,7 +200,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                     if (expression == null) {
                         mvelExpressionCache.put(replacement, expression = MVEL.compileExpression(replacement.getEffectiveTo()));
                     }
-                    log.debug("Evaluating {} for replacement using expression {} and vars {}" + new Object[]{ value, replacement.getEffectiveTo(), vars });
+                    log.debug("Evaluating {} for replacement using expression {} and vars {}" + value, replacement.getEffectiveTo(), vars);
                     Object rvalue = MVEL.executeExpression(expression, vars);
                     if (rvalue == null) {
                         return null;
@@ -212,8 +214,11 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             }
         }
         
-        if (!originalValue.equals(value)) {
-            log.debug("Performed replacement of {} from {} to {}", new Object[]{ what, originalValue, value });
+        if (originalValue == null && value != null) {
+            log.debug("Provided initial value of {} as {}", what, value);
+        }
+        else if (!originalValue.equals(value)) {
+            log.debug("Performed replacement of {} from {} to {}", what, originalValue, value);
         }
         
         return value;
@@ -267,7 +272,21 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         @SuppressWarnings("rawtypes")
         @Override
         public Enumeration getHeaders(final String name) {
-            final Enumeration delegate = super.getHeaders(name);
+            Enumeration headers = super.getHeaders(name);
+            final Enumeration delegate;
+            if (!headers.hasMoreElements()) {
+            	boolean isSupplyIfMissing = false;
+                for (RequestHeaderFilter requestHeaderFilter: configManager.getConfig().getRequestHeaderFilters()) {
+                    isSupplyIfMissing |= name.equals(requestHeaderFilter.getHeader()) && requestHeaderFilter.isSupplyIfMissing();
+                }
+                if (isSupplyIfMissing) {
+                 	delegate = Collections.enumeration(Collections.singleton(null)); // A null returned by the enumeration to hook processing in process header.
+                } else {
+                	delegate = headers;
+                }
+            } else {
+            	delegate = headers;
+            }
             return new Enumeration() {
 
                 @Override
@@ -282,24 +301,53 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             };
         }
         
-        private String processHeader(String name, String value) {
-            if (value == null) {
-                return null;
+        @Override
+		public Enumeration getHeaderNames() {
+        	
+        	// Do we have "supply if missing" request headers?
+        	Set<String> headers = new LinkedHashSet<String>();
+        	for (Enumeration e = super.getHeaderNames(); e.hasMoreElements(); ) {
+        		headers.add(e.nextElement().toString());
+        	}
+            for (RequestHeaderFilter requestHeaderFilter: configManager.getConfig().getRequestHeaderFilters()) {
+            	if (!headers.contains(requestHeaderFilter.getHeader()) && requestHeaderFilter.isSupplyIfMissing()) {
+            		headers.add(requestHeaderFilter.getHeader());
+            	}
             }
+        	
+        	// Return enumeration of combined.
+        	final Iterator<String> iterator = headers.iterator();
+        	return new Enumeration() {
+
+				@Override
+				public boolean hasMoreElements() {
+					return iterator.hasNext();
+				}
+
+				@Override
+				public Object nextElement() {
+					return iterator.next();
+				}
+        	};
+		}
+
+		private String processHeader(String name, String value) {
             for (RequestHeaderFilter requestHeaderFilter: configManager.getConfig().getRequestHeaderFilters()) {
                 if (name.equals(requestHeaderFilter.getHeader())) {
-                    String originalValue = value;
-                    value = replace(
-                            "request header '" + name + "'",
-                            value, 
-                            requestHeaderFilter.getReplacements(),
-                            "header",
-                            name,
-                            "request", 
-                            getRequest(), 
-                            "session", 
-                            ((HttpServletRequest)getRequest()).getSession(false));
-                    log.debug("Returning updated request header {} translated from {} to {} for {}", new Object[]{ name, originalValue, value, getRequestURI() });
+                    if (value != null || requestHeaderFilter.isSupplyIfMissing()) {
+	                    String originalValue = value;
+	                    value = replace(
+	                            "request header '" + name + "'",
+	                            value, 
+	                            requestHeaderFilter.getReplacements(),
+	                            "header",
+	                            name,
+	                            "request", 
+	                            getRequest(), 
+	                            "session", 
+	                            ((HttpServletRequest)getRequest()).getSession(false));
+	                    log.debug("Returning updated request header {} translated from {} to {} for {}", name, originalValue, value, getRequestURI());
+                    }
                 }
             }
             return value;
@@ -390,7 +438,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 
 		private void supplyDefaultHeaders() {
 			// See if there is any supply default response headers.
-        	for (ResponseHeaderFilter responseHeaderFilter: configManager.getConfig().getResponseHeaderFilters()) {
+        	for (HeaderFilter responseHeaderFilter: configManager.getConfig().getResponseHeaderFilters()) {
         		if (responseHeaderFilter.isSupplyIfMissing() && !headers.contains(responseHeaderFilter.getHeader())) {
         			this.addHeader(responseHeaderFilter.getHeader(), "");
         		}
@@ -402,7 +450,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             String originalValue = value;
             value = processHeader(name, value);
             if (value != null && value.trim().length() == 0) {
-                log.debug("Dropping empty response header {} translated from {} for {}", new Object[]{ name, originalValue, this.request.getRequestURI() });
+                log.debug("Dropping empty response header {} translated from {} for {}", name, originalValue, this.request.getRequestURI());
                 return;
             }
             super.setHeader(name, value);
@@ -413,7 +461,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             String originalValue = value;
             value = processHeader(name, value);
             if (value != null && value.trim().length() == 0) {
-                log.debug("Dropping empty response header {} translated from {} for {}", new Object[]{ name, originalValue, this.request.getRequestURI() });
+                log.debug("Dropping empty response header {} translated from {} for {}", name, originalValue, this.request.getRequestURI());
                 return;
             }
             super.addHeader(name, value);
@@ -433,7 +481,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                         request.getRequestURI().matches(contentFilter.getUriMatch())) {
                         isFiltered = true;
                         this.contentFilter = contentFilter;
-                        log.debug("Configured to filter ({}/{}) content for: {}", new Object[]{ contentType, charset, this.request.getRequestURI() });
+                        log.debug("Configured to filter ({}/{}) content for: {}", contentType, charset, this.request.getRequestURI());
                         break;
                     }
                 }
@@ -442,7 +490,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             } else if (name.equals("Content-Encoding") && value.toLowerCase().contains("deflate")) {
                 isDeflated = true;
             } else {
-                for (ResponseHeaderFilter responseHeaderFilter: configManager.getConfig().getResponseHeaderFilters()) {
+                for (HeaderFilter responseHeaderFilter: configManager.getConfig().getResponseHeaderFilters()) {
                     if (name.equals(responseHeaderFilter.getHeader())) {
                         String originalValue = value;
                         value = replace(
@@ -457,7 +505,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                                 request.getSession(false),
                                 "response",
                                 getResponse());
-                        log.debug("Returning updated response header {} translated from {} to {} for {}", new Object[]{ name, originalValue, value, this.request.getRequestURI() });
+                        log.debug("Returning updated response header {} translated from {} to {} for {}", name, originalValue, value, this.request.getRequestURI());
                     }
                 }
             }

@@ -22,6 +22,7 @@ import javax.xml.bind.annotation.XmlAttribute;
 public abstract class HeaderFilter extends BaseFilter {
 
     private String header;
+	private boolean supplyIfMissing;
     
     public HeaderFilter() {}
     
@@ -38,4 +39,13 @@ public abstract class HeaderFilter extends BaseFilter {
     public void setHeader(String header) {
         this.header = header;
     }
+
+	@XmlAttribute
+	public boolean isSupplyIfMissing() {
+		return supplyIfMissing;
+	}
+
+	public void setSupplyIfMissing(boolean supplyIfMissing) {
+		this.supplyIfMissing = supplyIfMissing;
+	}
 }
