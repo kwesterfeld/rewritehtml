@@ -86,6 +86,12 @@ public class ConfigManager {
                 }
             }
             
+            // Try direct file if it seems it might be a path.
+            File configFile;
+            if(configLocationUrl == null && configLocation.indexOf('/') >= 0 && (configFile = new File(configLocation)).exists()) {
+            	configLocationUrl = configFile.toURL();
+            }
+            
             // Set it (final).
             this.configLocationUrl = configLocationUrl;
             
