@@ -200,14 +200,14 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                     if (expression == null) {
                         mvelExpressionCache.put(replacement, expression = MVEL.compileExpression(replacement.getEffectiveTo()));
                     }
-                    log.debug("Evaluating {} for replacement using expression {} and vars {}" + value, replacement.getEffectiveTo(), vars);
+                    log.debug("Evaluating {} for replacement using expression {} and vars {}: {} {}", replacement.getEffectiveTo(), expression, vars, what, value);
                     Object rvalue = MVEL.executeExpression(expression, vars);
                     if (rvalue == null) {
                         return null;
                     }
                     value = rvalue.toString();
                 } catch (Exception e) {
-                    log.warn("Unexpected exception occurred while evaluating replacement expression: {}", replacement.getEffectiveTo(), e);
+                    log.warn("Unexpected exception occurred while evaluating {} with replacement expression: {}", what, replacement.getEffectiveTo(), e);
                 }
  
                 break;
@@ -449,7 +449,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         public void setHeader(String name, String value) {
             String originalValue = value;
             value = processHeader(name, value);
-            if (value != null && value.trim().length() == 0) {
+            if (value == null || value.trim().length() == 0) {
                 log.debug("Dropping empty response header {} translated from {} for {}", name, originalValue, this.request.getRequestURI());
                 return;
             }
@@ -460,7 +460,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         public void addHeader(String name, String value) {
             String originalValue = value;
             value = processHeader(name, value);
-            if (value != null && value.trim().length() == 0) {
+            if (value == null || value.trim().length() == 0) {
                 log.debug("Dropping empty response header {} translated from {} for {}", name, originalValue, this.request.getRequestURI());
                 return;
             }
