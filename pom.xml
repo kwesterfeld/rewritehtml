@@ -10,7 +10,7 @@
   <groupId>com.westerfeld.rewritehtml</groupId>
   <artifactId>com.westerfeld.rewritehtml</artifactId>
   <packaging>pom</packaging>
-  <version>1.0.3-SNAPSHOT</version>
+  <version>1.0.3</version>
   <name>Rewrite HTML Filter Parent</name>
 
   <licenses>
