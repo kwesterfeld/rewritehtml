@@ -85,7 +85,18 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 	}
 
 	public void init(FilterConfig filterConfig) throws ServletException {
-        this.configManager = new ConfigManager(filterConfig);
+		// Save current context class loader.
+		ClassLoader cl = Thread.currentThread().getContextClassLoader();
+		try {
+			// Swizzle to our classloader.
+			Thread.currentThread().setContextClassLoader(getClass().getClassLoader());
+			
+			// Do the init.
+	        this.configManager = new ConfigManager(filterConfig);
+		} finally {
+			// Restore context class loader.
+			Thread.currentThread().setContextClassLoader(cl);
+		}
     }
 
     public void doFilter(ServletRequest req, ServletResponse res, FilterChain filterChain) throws IOException, ServletException {
