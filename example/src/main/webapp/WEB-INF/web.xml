@@ -68,6 +68,19 @@
      </init-param>
   </filter>
   
+  <filter>
+     <filter-name>HtmlTranslationFilter-slashdot-dom</filter-name>
+     <filter-class>com.westerfeld.rewritehtml.HtmlTranslationFilter</filter-class>
+     <init-param>
+         <param-name>filter-xml</param-name>
+         <param-value>/WEB-INF/filters-slashdot-dom.xml</param-value>
+     </init-param>
+     <init-param>
+         <param-name>update-check-interval</param-name>
+         <param-value>0</param-value>
+     </init-param>
+  </filter>
+  
   <filter-mapping>
      <filter-name>RemoteUserExpressionFilter</filter-name>
      <url-pattern>/*</url-pattern>
@@ -90,6 +103,11 @@
      <url-pattern>/slash/*</url-pattern>
   </filter-mapping>
 
+    <filter-mapping>
+     <filter-name>HtmlTranslationFilter-slashdot-dom</filter-name>
+     <url-pattern>/slash-dom/*</url-pattern>
+  </filter-mapping>
+  
   <!-- NOTE: the ProxyServlet is used to host access to a back-end application.  In this case, 
              we are proxying to a liferay instance, which has been setup to accept an
              http header for single-signon.
@@ -139,5 +157,10 @@
     <servlet-name>ProxyServlet-slashdot</servlet-name>
     <url-pattern>/slash/*</url-pattern>
   </servlet-mapping>
- 
+
+    <servlet-mapping>
+    <servlet-name>ProxyServlet-slashdot</servlet-name>
+    <url-pattern>/slash-dom/*</url-pattern>
+  </servlet-mapping>
+  
 </web-app>

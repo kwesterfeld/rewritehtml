@@ -55,6 +55,27 @@
         <version>2.1.1</version>
       </plugin>
       <plugin>
+		<groupId>org.eclipse.jetty</groupId>
+		<artifactId>jetty-maven-plugin</artifactId>
+		<version>9.2.3.v20140905</version>
+		<configuration>
+			<webAppConfig>
+				<contextPath>/</contextPath>
+			</webAppConfig>
+			<stopPort>8889</stopPort>
+			<stopKey>somebodystopme</stopKey>
+			<!-- not used in plugin => default to 8080 !? 
+			<connectors>
+				<connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
+					<port>8888</port>
+					<maxIdleTime>60000</maxIdleTime>
+				</connector>
+			</connectors>
+			 -->
+		</configuration>
+      </plugin>
+      <!-- 
+      <plugin>
         <groupId>org.mortbay.jetty</groupId>
         <artifactId>maven-jetty-plugin</artifactId>
         <version>6.1.10</version>
@@ -72,6 +93,8 @@
           </connectors>
         </configuration>
       </plugin>
+       -->
+       
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-assembly-plugin</artifactId>

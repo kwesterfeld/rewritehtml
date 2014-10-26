@@ -19,6 +19,8 @@ package com.westerfeld.rewritehtml;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -31,6 +33,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.westerfeld.rewritehtml.config.Config;
+import com.westerfeld.rewritehtml.config.HtmlDOMContentFilter;
+import com.westerfeld.rewritehtml.config.HtmlDOMTransformer;
+import com.westerfeld.rewritehtml.resolvedconf.ResolvedConfig;
+import com.westerfeld.rewritehtml.resolvedconf.ResolvedConfigBuilder;
+import com.westerfeld.rewritehtml.resolvedconf.ResolvedHtmlDOMContentFilter;
+import com.westerfeld.rewritehtml.resolvedconf.CompositeJSoupHtmlDOMTransformer;
 
 public class ConfigManager {
     
@@ -38,7 +46,7 @@ public class ConfigManager {
     private static final Logger log = LoggerFactory.getLogger(ConfigManager.class.getName());
     private long updateCheckInterval = UPDATE_CHECK_INTERVAL;
     private final URL configLocationUrl;
-    private final AtomicReference<Config> config = new AtomicReference<Config>();
+    private final AtomicReference<ResolvedConfig> config = new AtomicReference<ResolvedConfig>();
     private final AtomicBoolean processingUpdate = new AtomicBoolean();
     private long nextUpdateTimeCheck;
     private long configLastModifiedTime;
@@ -111,7 +119,7 @@ public class ConfigManager {
         }
     }
     
-    public Config getConfig() {
+    public ResolvedConfig getConfig() {
         try {
             updateCheck();
         } catch (Exception e) {
@@ -170,13 +178,19 @@ public class ConfigManager {
         if (this.context == null) {
             this.context = JAXBContext.newInstance(Config.class);
         }
+        Config rawConfig;
         InputStream ins = this.configLocationUrl.openConnection().getInputStream();
         try {
-            this.config.set((Config) this.context.createUnmarshaller().unmarshal(ins));
+            rawConfig = (Config) this.context.createUnmarshaller().unmarshal(ins);
         } finally {
             ins.close();
         }
+        // resolve raw (from xml) config to executable obj
+        ResolvedConfig config = new ResolvedConfigBuilder().build(rawConfig); 
+        
+        this.config.set(config);
         log.debug("Loaded {} content replacements and {} header replacements", this.config.get().getContentFilters().size(), this.config.get().getResponseHeaderFilters().size());
     }
+
 }
  

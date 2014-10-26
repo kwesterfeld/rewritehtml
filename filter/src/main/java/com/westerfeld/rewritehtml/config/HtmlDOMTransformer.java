@@ -14,30 +14,32 @@
  *  limitations under the License.
  */
 
+
 package com.westerfeld.rewritehtml.config;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
 
-import com.westerfeld.rewritehtml.URIFilterType;
+@XmlRootElement(name="htmlDOMTransformer")
+public class HtmlDOMTransformer {
 
-
-public class URIFilter extends BaseUriConstrainedFilter {
-    
-    private URIFilterType type = URIFilterType.Forward;
-    
-    public URIFilter() {}
-    
-    @Override
+	private String className;
+	
+	public HtmlDOMTransformer() {
+	}
+	
+	@Override
     public String toString() {
-        return String.format("(uri filter uri %s, type %s)%s", this.uriMatch, this.getType(), super.toString());
+        return String.format("(HtmlDOMReplacement classname %s)", this.className);
     }
-
+	
     @XmlAttribute
-    public void setType(URIFilterType type) {
-        this.type = type;
+    public String getClassName() {
+        return className;
     }
 
-    public URIFilterType getType() {
-        return type;
+    public void setClassName(String className) {
+        this.className = className;
     }
+
 }
