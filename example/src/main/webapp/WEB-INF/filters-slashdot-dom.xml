@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<config>
+  <contentFilters>
+    <contentFilter mimeTypeMatch="text/html|text/css" uriMatch=".*">
+      <contentMap from='' to='/slash' />
+    </contentFilter>
+  </contentFilters>
+  
+  <htmlDOMContentFilters>
+      <htmlDOMContentFilter mimeTypeMatch="text/html" uriMatch=".*">
+		<htmlDOMTransformers>
+		    <htmlDOMTransformer className="com.westerfeld.rewritehtml.sample.IdentityJSoupHtmlDOMTransformer" />		    
+
+		    <htmlDOMTransformer className="com.westerfeld.rewritehtml.sample.PrependDivJsoupTransformer" />		    
+		    
+	    </htmlDOMTransformers>
+      </htmlDOMContentFilter>      
+  </htmlDOMContentFilters>
+  
+</config>

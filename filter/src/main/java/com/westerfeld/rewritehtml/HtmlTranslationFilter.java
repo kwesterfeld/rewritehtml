@@ -53,6 +53,8 @@ import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpServletResponseWrapper;
 
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.mvel2.MVEL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +65,7 @@ import com.westerfeld.rewritehtml.config.HeaderFilter;
 import com.westerfeld.rewritehtml.config.Replacement;
 import com.westerfeld.rewritehtml.config.RequestHeaderFilter;
 import com.westerfeld.rewritehtml.config.URIFilter;
-import com.westerfeld.rewritehtml.config.URIFilterType;
+import com.westerfeld.rewritehtml.resolvedconf.ResolvedHtmlDOMContentFilter;
 
 
 public class HtmlTranslationFilter implements javax.servlet.Filter {
@@ -235,6 +237,17 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         return value;
     }
 
+	private Document replace(Document htmlDOMContent,
+			List<JSoupHtmlDOMTransformer> htmlDOMReplacements, 
+			HttpServletRequest request, 
+			HttpServletResponse response) {
+        for (JSoupHtmlDOMTransformer replacement: htmlDOMReplacements) {
+        	htmlDOMContent = replacement.transform(htmlDOMContent, request, response);
+        }
+		return htmlDOMContent;
+	}
+
+	
     private class RequestWrapper extends HttpServletRequestWrapper {
 
         private final StringBuffer requestURL;
@@ -312,7 +325,8 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
             };
         }
         
-        @Override
+        @SuppressWarnings("rawtypes")
+		@Override
 		public Enumeration getHeaderNames() {
         	
         	// Do we have "supply if missing" request headers?
@@ -373,6 +387,7 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         private boolean isDeflated;
         private boolean isCommitted;
         private BaseUriConstrainedFilter contentFilter;
+        private ResolvedHtmlDOMContentFilter htmlDOMContentFilter;
         private String charset;
         private HttpServletRequest request;
         private Set<String> headers = new HashSet<String>();
@@ -385,6 +400,8 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
         public void commit() throws IOException {
         	
         	if (!isCommitted) {
+        		HttpServletResponse httpResp = (HttpServletResponse) getResponse();
+        		
 	        	// If we are filtering, and we have a stream...
 	            if (this.isFiltered && this.stream != null && !this.stream.isEmpty()) {
 	        		isCommitted = true;
@@ -399,9 +416,37 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
 	                        "session",
 	                        request.getSession(false),
 	                        "response",
-	                        getResponse()
+	                        httpResp
 	                        );
 	
+	                // If we have a Html DOM replacement filter to post-apply after textual replacements 
+	                if (htmlDOMContentFilter != null) {
+		                // 1) parse HTML text as DOM using jSoup
+	                	Document htmlDOMContent;
+	                	try {
+	                		htmlDOMContent = Jsoup.parse(content);
+	                	} catch(Exception ex) {
+	                		// Failed to parse?? => ignore error, leave html unmodified!!
+	                		htmlDOMContent = null;
+	                	}
+	                	if (htmlDOMContent != null) {
+	                		try {
+			                	// 2) replace html DOM
+			                	htmlDOMContent = replace(
+				                        htmlDOMContent, 
+				                        this.htmlDOMContentFilter.getResolvedHtmlDOMReplacements(),
+				                        request,
+				                        httpResp
+				                        );
+		
+			                	// 3) re-render to text
+			                	content = htmlDOMContent.outerHtml();
+	                		} catch(Exception ex) {
+	                			// failed to modify or re-render to html?? => => ignore error, leave html unmodified!!
+	                		}
+	                	}
+	                }
+	                
 	                if (this.isGzip || this.isDeflated) {
 	                    log.debug("Returning filtered, compressed content for: {}", this.request.getRequestURI());
 	                    ByteArrayOutputStream bos = new ByteArrayOutputStream();
@@ -487,15 +532,26 @@ public class HtmlTranslationFilter implements javax.servlet.Filter {
                     this.charset = value.replaceAll(".*charset\\s*=\\s*([^;]*).*", "$1");
                 }
 
-                for (ContentFilter contentFilter : configManager.getConfig().getContentFilters()) {
+                String requestURI = request.getRequestURI();
+				for (ContentFilter contentFilter : configManager.getConfig().getContentFilters()) {
                     if (contentType.matches(contentFilter.getMimeTypeMatch()) &&
-                        request.getRequestURI().matches(contentFilter.getUriMatch())) {
+                        requestURI.matches(contentFilter.getUriMatch())) {
                         isFiltered = true;
                         this.contentFilter = contentFilter;
                         log.debug("Configured to filter ({}/{}) content for: {}", contentType, charset, this.request.getRequestURI());
                         break;
                     }
                 }
+                
+                for (ResolvedHtmlDOMContentFilter htmlDOMContentFilter : configManager.getConfig().getHtmlDOMContentFilters()) {
+                    if (htmlDOMContentFilter.matchRequest(requestURI, contentType)) {
+                        isFiltered = true;
+                        this.htmlDOMContentFilter = htmlDOMContentFilter;
+                        log.debug("Configured to filter ({}/{}) content for: {}", contentType, charset, this.request.getRequestURI());
+                        break;
+                    }
+                }
+                
             } else if (name.equals("Content-Encoding") && value.toLowerCase().contains("gzip")) {
                 isGzip = true;
             } else if (name.equals("Content-Encoding") && value.toLowerCase().contains("deflate")) {

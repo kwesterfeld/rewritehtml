@@ -79,6 +79,7 @@
     </plugins>
   </build>
   <modules>
+    <module>filter-spi</module>
     <module>filter</module>
     <module>example</module>
   </modules>

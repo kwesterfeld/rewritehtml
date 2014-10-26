@@ -27,7 +27,8 @@ import javax.xml.bind.annotation.XmlRootElement;
 public class Config {
 
     private List<ContentFilter> contentFilters = new ArrayList<ContentFilter>();
-    private List<URIFilter> uriFilters = new ArrayList<URIFilter>();
+    private List<HtmlDOMContentFilter> htmlDOMContentFilters = new ArrayList<HtmlDOMContentFilter>();
+	private List<URIFilter> uriFilters = new ArrayList<URIFilter>();
     private List<ResponseHeaderFilter> responseHeaderFilters = new ArrayList<ResponseHeaderFilter>();
     private List<RequestHeaderFilter> requestHeaderFilters = new ArrayList<RequestHeaderFilter>();
     
@@ -46,6 +47,16 @@ public class Config {
 
     public void setContentFilters(List<ContentFilter> contentFilters) {
         this.contentFilters = contentFilters;
+    }
+
+    @XmlElementWrapper(name="htmlDOMContentFilters")
+    @XmlElement(name="htmlDOMContentFilter")
+    public List<HtmlDOMContentFilter> getHtmlDOMContentFilters() {
+        return htmlDOMContentFilters;
+    }
+
+    public void setHtmlDOMContentFilters(List<HtmlDOMContentFilter> htmlDOMContentFilters) {
+        this.htmlDOMContentFilters = htmlDOMContentFilters;
     }
 
     @XmlElementWrapper(name="responseHeaderFilters")
